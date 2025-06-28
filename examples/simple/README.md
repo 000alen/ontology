@@ -9,6 +9,7 @@ This example demonstrates how to use the ontology library's node creation utilit
 - **Creating Edges**: Using `createEdge()` to define relationships between nodes
 - **Creating Graphs**: Using `createGraph()` to combine nodes and edges
 - **Similarity Matching**: Using `match()` and `similarSubGraphs()` to find similar patterns
+- **Graph Visualization**: Using `ontology-plot` to visualize graphs in a web interface
 
 ## The example scenario
 
@@ -41,7 +42,9 @@ The example will show:
 1. Creation of properties, nodes, and edges with confirmation messages
 2. Graph construction with node/edge counts
 3. Similarity search results showing matched subgraphs
-4. A summary of created entities
+4. Graph visualization server startup and automatic browser opening
+5. Interactive web interface for exploring the graphs
+6. A summary of created entities
 
 ## Environment setup
 
@@ -51,4 +54,16 @@ Make sure you have your OpenAI API key set in your environment:
 export OPENAI_API_KEY="your-api-key-here"
 ```
 
-The example uses the OpenAI text-embedding-3-small model for generating embeddings. 
+The example uses the OpenAI text-embedding-3-small model for generating embeddings.
+
+## Graph Visualization
+
+This example now includes interactive graph visualization powered by the `ontology-plot` package:
+
+- **Real-time Updates**: Graphs appear in the web interface as they're created
+- **Interactive Network**: Click and drag nodes, zoom, and pan around the graph
+- **Graph Selection**: Switch between different graphs using the dropdown
+- **Detailed Information**: Click on nodes and edges to see their properties
+- **Responsive Layout**: The graph automatically arranges itself for optimal viewing
+
+The visualization server runs on http://localhost:3000 and automatically opens in your browser when you run the example. 
