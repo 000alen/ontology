@@ -1,0 +1,26 @@
+{
+  "name": "examples-simple",
+  "version": "1.0.0",
+  "description": "Simple example demonstrating ontology node creation utilities",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "tsx index.ts",
+    "dev": "tsx watch index.ts"
+  },
+  "keywords": [
+    "ontology",
+    "example",
+    "node-creation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.11.1",
+  "dependencies": {
+    "ontology": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.7",
+    "dotenv": "^17.0.0"
+  }
+}

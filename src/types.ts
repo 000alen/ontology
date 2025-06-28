@@ -1,3 +1,5 @@
+import { EmbeddingModel } from "ai";
+
 export type Embedding = number[];
 
 export type GraphId = `graph_${string}`;
@@ -19,6 +21,7 @@ export type Property = {
 export type Node = {
     id: NodeId;
     name: string;
+    description: string;
 
     embedding: Embedding;
 
@@ -55,4 +58,8 @@ export type EdgeCandidate = {
     referenceId: EdgeId;
     candidateId: EdgeId;
     similarity: number;
+}
+
+export interface Context {
+    embeddingModel: EmbeddingModel<string>;
 }

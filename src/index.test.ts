@@ -18,6 +18,7 @@ describe('Graph Matching Algorithms', () => {
   const createNode = (id: string, embedding: number[]): Node => ({
     id: `node_${id}` as NodeId,
     name: `Node ${id}`,
+    description: `Node ${id}`,
     embedding,
     properties: []
   })
@@ -44,7 +45,7 @@ describe('Graph Matching Algorithms', () => {
     it('should return undefined for empty graphs', () => {
       const emptyGraph = createGraph('empty', [], [])
       const queryGraph = createGraph('query', [createNode('1', [1, 0, 0])], [])
-      
+
       expect(() => match(emptyGraph, queryGraph)).toThrow('Graph has no nodes')
     })
 
@@ -71,12 +72,12 @@ describe('Graph Matching Algorithms', () => {
     it('should find exact match for identical single nodes', () => {
       const node1 = createNode('1', [1, 0, 0])
       const graph = createGraph('graph', [node1], [])
-      
+
       const queryNode = createNode('q1', [1, 0, 0]) // Identical embedding
       const query = createGraph('query', [queryNode], [])
 
       const result = match(graph, query)
-      
+
       expect(result).toBeDefined()
       expect(result!.nodes).toHaveLength(1)
       expect(result!.nodes[0]!.id).toBe(node1.id)
@@ -86,12 +87,12 @@ describe('Graph Matching Algorithms', () => {
       const node1 = createNode('1', [1, 0, 0])
       const node2 = createNode('2', [0, 1, 0])
       const graph = createGraph('graph', [node1, node2], [])
-      
+
       const queryNode = createNode('q1', [0.9, 0.1, 0]) // Similar to node1
       const query = createGraph('query', [queryNode], [])
 
       const result = match(graph, query)
-      
+
       expect(result).toBeDefined()
       expect(result!.nodes).toHaveLength(1)
       expect(result!.nodes[0]!.id).toBe(node1.id)
@@ -100,12 +101,12 @@ describe('Graph Matching Algorithms', () => {
     it('should not find match when similarity is below threshold', () => {
       const node1 = createNode('1', [1, 0, 0])
       const graph = createGraph('graph', [node1], [])
-      
+
       const queryNode = createNode('q1', [0, 0, 1]) // Orthogonal to node1
       const query = createGraph('query', [queryNode], [])
 
       const result = match(graph, query)
-      
+
       expect(result).toBeUndefined()
     })
 
@@ -125,11 +126,11 @@ describe('Graph Matching Algorithms', () => {
       const query = createGraph('query', [nodeX, nodeY], [edgeXY])
 
       const result = match(graph, query)
-      
+
       expect(result).toBeDefined()
       expect(result!.nodes).toHaveLength(2)
       expect(result!.edges).toHaveLength(1)
-      
+
       // Should match A->B (not B->C or any other combination)
       const resultNodeIds = result!.nodes.map(n => n.id).sort()
       expect(resultNodeIds).toEqual([nodeA.id, nodeB.id])
@@ -142,7 +143,7 @@ describe('Graph Matching Algorithms', () => {
       const nodeB = createNode('B', [0, 1, 0])
       const nodeC = createNode('C', [1, 0, 0]) // Same embedding as A
       const nodeD = createNode('D', [0, 1, 0]) // Same embedding as B
-      
+
       // Only connect A->B, not C->D
       const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
       const graph = createGraph('graph', [nodeA, nodeB, nodeC, nodeD], [edgeAB])
@@ -154,11 +155,11 @@ describe('Graph Matching Algorithms', () => {
       const query = createGraph('query', [nodeX, nodeY], [edgeXY])
 
       const result = match(graph, query)
-      
+
       expect(result).toBeDefined()
       expect(result!.nodes).toHaveLength(2)
       expect(result!.edges).toHaveLength(1)
-      
+
       // Should match A->B (the only connected pair)
       const resultNodeIds = result!.nodes.map(n => n.id).sort()
       expect(resultNodeIds).toEqual([nodeA.id, nodeB.id])
@@ -178,7 +179,7 @@ describe('Graph Matching Algorithms', () => {
       const query = createGraph('query', [nodeX, nodeY], [])
 
       const result = match(graph, query)
-      
+
       expect(result).toBeDefined()
       expect(result!.nodes).toHaveLength(2)
       expect(result!.edges).toHaveLength(0)
@@ -197,7 +198,7 @@ describe('Graph Matching Algorithms', () => {
       const query = createGraph('query', [nodeX, nodeY], [edgeXY])
 
       const result = match(graph, query)
-      
+
       expect(result).toBeDefined()
       expect(result!.nodes).toHaveLength(2)
       expect(result!.edges).toHaveLength(1)
@@ -214,7 +215,7 @@ describe('Graph Matching Algorithms', () => {
       const query = createGraph('query', [nodeX], [querySelfLoop])
 
       const result = match(graph, query)
-      
+
       expect(result).toBeDefined()
       expect(result!.nodes).toHaveLength(1)
       expect(result!.edges).toHaveLength(1)
@@ -227,12 +228,12 @@ describe('Graph Matching Algorithms', () => {
       const node1 = createNode('1', [1, 0, 0])
       const node2 = createNode('2', [0, 1, 0])
       const graph = createGraph('graph', [node1, node2], [])
-      
+
       const queryNode = createNode('q1', [1, 0, 0])
       const query = createGraph('query', [queryNode], [])
 
       const result = match(graph, query)
-      
+
       expect(result).toBeDefined()
       expect(result!.nodes).toHaveLength(1)
       expect(result!.edges).toHaveLength(0)
@@ -241,13 +242,13 @@ describe('Graph Matching Algorithms', () => {
     it('should handle query larger than graph', () => {
       const node1 = createNode('1', [1, 0, 0])
       const graph = createGraph('graph', [node1], [])
-      
+
       const queryNode1 = createNode('q1', [1, 0, 0])
       const queryNode2 = createNode('q2', [0, 1, 0])
       const query = createGraph('query', [queryNode1, queryNode2], [])
 
       const result = match(graph, query)
-      
+
       // Should not find a match since graph is smaller than query
       expect(result).toBeUndefined()
     })

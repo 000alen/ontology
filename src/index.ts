@@ -3,8 +3,8 @@ import { Edge, EdgeCandidate, EdgeId, Graph, Node, NodeCandidate, NodeId } from 
 import { cartesianProduct, take } from "./iter.js";
 import { log } from "./logging.js";
 
-const DEFAULT_N = 10;
-const DEFAULT_THRESHOLD = 0.5;
+export const DEFAULT_N = 10;
+export const DEFAULT_THRESHOLD = 0.5;
 
 function isValidGraph(graph: Graph): boolean {
     const nodeIds = new Set<NodeId>();
@@ -27,7 +27,7 @@ function isValidGraph(graph: Graph): boolean {
     return true;
 }
 
-function* similarNodes(graph: Graph, query: Graph, options?: { n: number; threshold: number; }): Generator<NodeCandidate[]> {
+export function* similarNodes(graph: Graph, query: Graph, options?: { n: number; threshold: number; }): Generator<NodeCandidate[]> {
     if (graph.nodes.length === 0) {
         throw new Error("Graph has no nodes");
     }
@@ -87,7 +87,7 @@ function* iterateEdges(graph: Graph, subset: NodeId[], options?: { n: number; })
     }
 }
 
-function* similarEdges(graph: Graph, query: Graph, nodeCandidates: NodeCandidate[], options?: { n: number; threshold: number; }): Generator<EdgeCandidate[]> {
+export function* similarEdges(graph: Graph, query: Graph, nodeCandidates: NodeCandidate[], options?: { n: number; threshold: number; }): Generator<EdgeCandidate[]> {
     const { n = DEFAULT_N, threshold = DEFAULT_THRESHOLD } = options ?? {};
 
     // Create mapping from query node IDs to candidate node IDs
@@ -146,7 +146,7 @@ function* similarEdges(graph: Graph, query: Graph, nodeCandidates: NodeCandidate
 // iterates of all the possible candidates for the query graph
 // if graph has nodes {a, b, c, d} and query has nodes {p, q}
 // iterates like {{a, b}, {c, d}} assuming that a and c are similar (descending in similarity) to p, and b and d are similar to q
-function* similarSubGraphs(graph: Graph, query: Graph, options?: { n: number; threshold: number; }): Generator<Graph> {
+export function* similarSubGraphs(graph: Graph, query: Graph, options?: { n: number; threshold: number; }): Generator<Graph> {
     const nodeLookup = new Map<NodeId, Node>(
         graph.nodes.map((node) => [node.id, node])
     );
@@ -191,3 +191,5 @@ export function match(graph: Graph, query: Graph): Graph | undefined {
 
     return best;
 }
+
+export { createGraph, createNode, createEdge, createProperty } from "./utils.js";
