@@ -5,8 +5,8 @@ import {
     createGraph,
     createProperty,
     match,
-} from "../../src/index.js";
-import { createInstance } from "../../packages/ontology-plot/src/index.js";
+} from "ontology";
+import { createInstance } from "ontology-plot";
 
 async function createSimpleExample() {
     const [ageProperty, salaryProperty, typeProperty] = await Promise.all([

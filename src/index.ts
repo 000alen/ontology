@@ -193,3 +193,4 @@ export function match(graph: Graph, query: Graph): Graph | undefined {
 }
 
 export { createGraph, createNode, createEdge, createProperty } from "./utils.js";
+export * from "./types.js";

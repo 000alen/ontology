@@ -37,7 +37,7 @@ export function createInstance(options: CreateInstanceOptions = {}): PlotInstanc
   // API endpoint to get current graphs
   let graphs: Graph[] = [];
   
-  app.get('/api/graphs', (req, res) => {
+  app.get('/api/graphs', (_req, res) => {
     res.json(graphs);
   });
 
