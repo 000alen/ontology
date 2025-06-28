@@ -1,6 +1,7 @@
 import { cosineSimilarity } from "ai";
 import { Edge, EdgeCandidate, EdgeId, Graph, Node, NodeCandidate, NodeId } from "./types.js";
 import { cartesianProduct, take } from "./iter.js";
+import { log } from "./logging.js";
 
 const DEFAULT_N = 10;
 const DEFAULT_THRESHOLD = 0.5;
@@ -35,7 +36,7 @@ function* similarNodes(graph: Graph, query: Graph, options?: { n: number; thresh
         throw new Error("Query has no nodes");
     }
 
-    const { n = 10, threshold = 0.5 } = options ?? {};
+    const { n = DEFAULT_N, threshold = DEFAULT_THRESHOLD } = options ?? {};
 
     const candidates_ij: NodeCandidate[][] = [];
 
@@ -52,6 +53,10 @@ function* similarNodes(graph: Graph, query: Graph, options?: { n: number; thresh
             candidates_i.push({ referenceId: queryNode.id, candidateId: graphNode.id, similarity });
         }
 
+        if (candidates_i.length === 0) {
+            log(`No candidates found for node ${queryNode.id} in graph ${graph.id}`);
+        }
+
         candidates_ij.push(candidates_i.sort((a, b) => b.similarity - a.similarity));
     }
 
@@ -63,7 +68,7 @@ function* iterateEdges(graph: Graph, subset: NodeId[], options?: { n: number; })
         throw new Error("Subset has no nodes");
     }
 
-    const { n = 10 } = options ?? {};
+    const { n = DEFAULT_N } = options ?? {};
 
     const subsetSet = new Set(subset);
 
@@ -83,7 +88,7 @@ function* iterateEdges(graph: Graph, subset: NodeId[], options?: { n: number; })
 }
 
 function* similarEdges(graph: Graph, query: Graph, nodeCandidates: NodeCandidate[], options?: { n: number; threshold: number; }): Generator<EdgeCandidate[]> {
-    const { n = 10, threshold = 0.5 } = options ?? {};
+    const { n = DEFAULT_N, threshold = DEFAULT_THRESHOLD } = options ?? {};
 
     // Create mapping from query node IDs to candidate node IDs
     const nodeMapping = new Map<NodeId, NodeId>();
@@ -128,6 +133,10 @@ function* similarEdges(graph: Graph, query: Graph, nodeCandidates: NodeCandidate
             candidates_i.push({ referenceId: queryEdge.id, candidateId: graphEdge.id, similarity });
         }
 
+        if (candidates_i.length === 0) {
+            log(`No candidates found for edge ${queryEdge.id} in graph ${graph.id}`);
+        }
+
         candidates_ij.push(candidates_i.sort((a, b) => b.similarity - a.similarity));
     }
 
@@ -147,11 +156,21 @@ function* similarSubGraphs(graph: Graph, query: Graph, options?: { n: number; th
     );
 
     for (const nodeCandidates of similarNodes(graph, query, options)) {
-        for (const edgeCandidates of similarEdges(graph, query, nodeCandidates, options)) {
+        if (query.edges.length > 0)
+            for (const edgeCandidates of similarEdges(graph, query, nodeCandidates, options)) {
+                const subGraph: Graph = {
+                    id: `graph_${Math.random().toString(36).substring(2, 15)}`,
+                    nodes: nodeCandidates.map((candidate) => nodeLookup.get(candidate.candidateId)!),
+                    edges: edgeCandidates.map((candidate) => edgeLookup.get(candidate.candidateId)!),
+                };
+
+                yield subGraph;
+            }
+        else {
             const subGraph: Graph = {
                 id: `graph_${Math.random().toString(36).substring(2, 15)}`,
                 nodes: nodeCandidates.map((candidate) => nodeLookup.get(candidate.candidateId)!),
-                edges: edgeCandidates.map((candidate) => edgeLookup.get(candidate.candidateId)!),
+                edges: [],
             };
 
             yield subGraph;
