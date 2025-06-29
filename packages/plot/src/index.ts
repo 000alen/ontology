@@ -21,7 +21,7 @@ export interface CreateInstanceOptions {
 
 export function createInstance(options: CreateInstanceOptions = {}): PlotInstance {
   const { port = 3000, autoOpen = true } = options;
-  
+
   const app = express();
   const server = createServer(app);
   const io = new SocketIOServer(server, {
@@ -36,7 +36,7 @@ export function createInstance(options: CreateInstanceOptions = {}): PlotInstanc
 
   // API endpoint to get current graphs
   let graphs: Graph[] = [];
-  
+
   app.get('/api/graphs', (_req, res) => {
     res.json(graphs);
   });
@@ -44,10 +44,10 @@ export function createInstance(options: CreateInstanceOptions = {}): PlotInstanc
   // Socket.io connection handling
   io.on('connection', (socket) => {
     console.log('Client connected to ontology-plot');
-    
+
     // Send current graphs to new client
     socket.emit('graphs', graphs);
-    
+
     socket.on('disconnect', () => {
       console.log('Client disconnected from ontology-plot');
     });
@@ -79,9 +79,14 @@ export function createInstance(options: CreateInstanceOptions = {}): PlotInstanc
   };
 }
 
+// Default instance that gets reused for direct plot calls
+let defaultInstance: PlotInstance | null = null;
+
 // Convenience function to create instance and plot a single graph
 export function plot(graph: Graph, options?: CreateInstanceOptions): PlotInstance {
-  const instance = createInstance(options);
-  instance.plot(graph);
-  return instance;
+  if (!defaultInstance) {
+    defaultInstance = createInstance(options);
+  }
+  defaultInstance.plot(graph);
+  return defaultInstance;
 } 

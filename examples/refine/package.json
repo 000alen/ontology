@@ -1,0 +1,32 @@
+{
+  "name": "examples-rag",
+  "version": "1.0.0",
+  "description": "Simple example demonstrating ontology node creation utilities",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "tsx index.ts",
+    "dev": "tsx watch index.ts"
+  },
+  "keywords": [
+    "ontology",
+    "example",
+    "node-creation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.11.1",
+  "dependencies": {
+    "@ai-sdk/openai": "^1.3.22",
+    "@ai-sdk/provider": "^1.1.3",
+    "ai": "^4.3.16",
+    "ontology": "workspace:*",
+    "ontology-plot": "workspace:*",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.7",
+    "dotenv": "^17.0.0",
+    "tsx": "^4.6.2"
+  }
+}

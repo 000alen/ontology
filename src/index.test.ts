@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { match } from './index.js'
+import { match, intersect, merge } from './index.js'
 import { Graph, Node, Edge, NodeId, EdgeId } from './types.js'
 
 // Mock cosineSimilarity from 'ai' package
@@ -251,6 +251,290 @@ describe('Graph Matching Algorithms', () => {
 
       // Should not find a match since graph is smaller than query
       expect(result).toBeUndefined()
+    })
+  })
+
+  describe('intersect function', () => {
+    it('should return empty graph when graphs have no overlapping nodes', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      // const nodeB = createNode('B', [0, 1, 0])
+      const graphA = createGraph('graphA', [nodeA], [])
+
+      const nodeC = createNode('C', [0, 0, 1])
+      const nodeD = createNode('D', [0, 1, 1])
+      const graphB = createGraph('graphB', [nodeC, nodeD], [])
+
+      const result = intersect(graphA, graphB)
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(0)
+      expect(result.edges).toHaveLength(0)
+    })
+
+    it('should find overlapping nodes based on similarity', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const graphA = createGraph('graphA', [nodeA, nodeB], [])
+
+      const nodeC = createNode('C', [1, 0, 0]) // Similar to nodeA
+      const nodeD = createNode('D', [0, 0, 1]) // Not similar to any node in graphA
+      const graphB = createGraph('graphB', [nodeC, nodeD], [])
+
+      const result = intersect(graphA, graphB)
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(1)
+      expect(result.nodes[0]!.id).toBe(nodeC.id)
+      expect(result.edges).toHaveLength(0)
+    })
+
+    it('should find overlapping edges when both endpoints and edge are similar', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const graphA = createGraph('graphA', [nodeA, nodeB], [edgeAB])
+
+      const nodeC = createNode('C', [1, 0, 0]) // Similar to nodeA
+      const nodeD = createNode('D', [0, 1, 0]) // Similar to nodeB
+      const edgeCD = createEdge('CD', nodeC.id, nodeD.id, [1, 0]) // Similar to edgeAB
+      const graphB = createGraph('graphB', [nodeC, nodeD], [edgeCD])
+
+      const result = intersect(graphA, graphB)
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(2)
+      expect(result.edges).toHaveLength(1)
+      expect(result.edges[0]!.id).toBe(edgeCD.id)
+    })
+
+    it('should not include edges when endpoints are not similar', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const graphA = createGraph('graphA', [nodeA, nodeB], [edgeAB])
+
+      const nodeC = createNode('C', [1, 0, 0]) // Similar to nodeA
+      const nodeD = createNode('D', [0, 0, 1]) // Not similar to nodeB
+      const edgeCD = createEdge('CD', nodeC.id, nodeD.id, [1, 0])
+      const graphB = createGraph('graphB', [nodeC, nodeD], [edgeCD])
+
+      const result = intersect(graphA, graphB)
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(1) // Only nodeC matches
+      expect(result.edges).toHaveLength(0) // Edge not included because nodeD doesn't match nodeB
+    })
+
+    it('should not include edges when edge similarity is below threshold', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const graphA = createGraph('graphA', [nodeA, nodeB], [edgeAB])
+
+      const nodeC = createNode('C', [1, 0, 0]) // Similar to nodeA
+      const nodeD = createNode('D', [0, 1, 0]) // Similar to nodeB
+      const edgeCD = createEdge('CD', nodeC.id, nodeD.id, [0, 1]) // Orthogonal to edgeAB
+      const graphB = createGraph('graphB', [nodeC, nodeD], [edgeCD])
+
+      const result = intersect(graphA, graphB)
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(2)
+      expect(result.edges).toHaveLength(0) // Edge not included due to low similarity
+    })
+
+    it('should handle complex graphs with multiple overlapping elements', () => {
+      // GraphA: A -> B -> C
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const nodeC = createNode('C', [0, 0, 1])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const edgeBC = createEdge('BC', nodeB.id, nodeC.id, [0, 1])
+      const graphA = createGraph('graphA', [nodeA, nodeB, nodeC], [edgeAB, edgeBC])
+
+      // GraphB: X -> Y, Z (where X~A, Y~B, Z is unique and orthogonal)  
+      const nodeX = createNode('X', [1, 0, 0]) // Similar to A
+      const nodeY = createNode('Y', [0, 1, 0]) // Similar to B
+      const nodeZ = createNode('Z', [-1, 0, 0]) // Unique and orthogonal to A and B
+      const edgeXY = createEdge('XY', nodeX.id, nodeY.id, [1, 0]) // Similar to AB
+      const graphB = createGraph('graphB', [nodeX, nodeY, nodeZ], [edgeXY])
+
+      const result = intersect(graphA, graphB)
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(2) // X and Y should match A and B
+      expect(result.edges).toHaveLength(1) // XY should match AB
+      expect(result.edges[0]!.id).toBe(edgeXY.id)
+    })
+
+    it('should handle self-loops correctly', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const selfLoopA = createEdge('loopA', nodeA.id, nodeA.id, [1, 0])
+      const graphA = createGraph('graphA', [nodeA], [selfLoopA])
+
+      const nodeB = createNode('B', [1, 0, 0]) // Similar to A
+      const selfLoopB = createEdge('loopB', nodeB.id, nodeB.id, [1, 0]) // Similar to selfLoopA
+      const graphB = createGraph('graphB', [nodeB], [selfLoopB])
+
+      const result = intersect(graphA, graphB)
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(1)
+      expect(result.edges).toHaveLength(1)
+      expect(result.edges[0]!.sourceId).toBe(result.edges[0]!.targetId)
+    })
+  })
+
+  describe('merge function', () => {
+    it('should merge graphs with no overlapping nodes', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const graphA = createGraph('graphA', [nodeA, nodeB], [])
+
+      const nodeC = createNode('C', [0, 0, 1])
+      const nodeD = createNode('D', [0, -1, 0]) // Orthogonal to A, B, C
+      const graphB = createGraph('graphB', [nodeC, nodeD], [])
+
+      const result = merge(graphA, graphB)
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(4)
+      expect(result.edges).toHaveLength(0)
+      
+      const nodeIds = result.nodes.map(n => n.id).sort()
+      expect(nodeIds).toEqual([nodeA.id, nodeB.id, nodeC.id, nodeD.id].sort())
+    })
+
+    it('should not duplicate similar nodes when merging', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const graphA = createGraph('graphA', [nodeA, nodeB], [])
+
+      const nodeC = createNode('C', [1, 0, 0]) // Similar to nodeA
+      const nodeD = createNode('D', [0, 0, 1]) // Unique
+      const graphB = createGraph('graphB', [nodeC, nodeD], [])
+
+      const result = merge(graphA, graphB)
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(3) // A, B from graphA + D from graphB (C is similar to A)
+      expect(result.edges).toHaveLength(0)
+      
+      const nodeIds = result.nodes.map(n => n.id).sort()
+      expect(nodeIds).toEqual([nodeA.id, nodeB.id, nodeD.id].sort())
+    })
+
+    it('should merge edges from both graphs', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const graphA = createGraph('graphA', [nodeA, nodeB], [edgeAB])
+
+      const nodeC = createNode('C', [0, 0, 1])
+      const nodeD = createNode('D', [0, -1, 0]) // Orthogonal to A, B, C
+      const edgeCD = createEdge('CD', nodeC.id, nodeD.id, [0, 1])
+      const graphB = createGraph('graphB', [nodeC, nodeD], [edgeCD])
+
+      const result = merge(graphA, graphB)
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(4)
+      expect(result.edges).toHaveLength(2)
+      
+      const edgeIds = result.edges.map(e => e.id).sort()
+      expect(edgeIds).toEqual([edgeAB.id, edgeCD.id].sort())
+    })
+
+    it('should not duplicate similar edges when merging', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const graphA = createGraph('graphA', [nodeA, nodeB], [edgeAB])
+
+      const nodeC = createNode('C', [1, 0, 0]) // Similar to A
+      const nodeD = createNode('D', [0, 1, 0]) // Similar to B
+      const edgeCD = createEdge('CD', nodeC.id, nodeD.id, [1, 0]) // Similar to AB
+      const graphB = createGraph('graphB', [nodeC, nodeD], [edgeCD])
+
+      const result = merge(graphA, graphB)
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(2) // Only A and B (C and D are similar)
+      expect(result.edges).toHaveLength(1) // Only AB (CD is similar)
+      expect(result.edges[0]!.id).toBe(edgeAB.id)
+    })
+
+    it('should handle complex merge scenarios', () => {
+      // GraphA: A -> B
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const graphA = createGraph('graphA', [nodeA, nodeB], [edgeAB])
+
+      // GraphB: X -> Y -> Z (where X~A, Y~B, Z is unique)
+      const nodeX = createNode('X', [1, 0, 0]) // Similar to A
+      const nodeY = createNode('Y', [0, 1, 0]) // Similar to B
+      const nodeZ = createNode('Z', [0, 0, 1]) // Unique
+      const edgeXY = createEdge('XY', nodeX.id, nodeY.id, [1, 0]) // Similar to AB
+      const edgeYZ = createEdge('YZ', nodeY.id, nodeZ.id, [0, 1]) // Unique
+      const graphB = createGraph('graphB', [nodeX, nodeY, nodeZ], [edgeXY, edgeYZ])
+
+      const result = merge(graphA, graphB)
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(3) // A, B, Z
+      expect(result.edges).toHaveLength(2) // AB, YZ (XY is similar to AB)
+      
+      const nodeIds = result.nodes.map(n => n.id).sort()
+      expect(nodeIds).toEqual([nodeA.id, nodeB.id, nodeZ.id].sort())
+      
+      const edgeIds = result.edges.map(e => e.id).sort()
+      expect(edgeIds).toEqual([edgeAB.id, edgeYZ.id].sort())
+    })
+
+    it('should handle merging with empty graphs', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const graphA = createGraph('graphA', [nodeA], [])
+      const emptyGraph = createGraph('empty', [], [])
+
+      const resultA = merge(graphA, emptyGraph)
+      expect(resultA.nodes).toHaveLength(1)
+      expect(resultA.edges).toHaveLength(0)
+
+      const resultB = merge(emptyGraph, graphA)
+      expect(resultB.nodes).toHaveLength(1)
+      expect(resultB.edges).toHaveLength(0)
+    })
+
+    it('should preserve edge connectivity after merge', () => {
+      // GraphA: A -> B
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const graphA = createGraph('graphA', [nodeA, nodeB], [edgeAB])
+
+      // GraphB: C -> D (where C~A but D is unique)
+      const nodeC = createNode('C', [1, 0, 0]) // Similar to A
+      const nodeD = createNode('D', [0, 0, 1]) // Unique
+      const edgeCD = createEdge('CD', nodeC.id, nodeD.id, [0, 1]) // Different from AB
+      const graphB = createGraph('graphB', [nodeC, nodeD], [edgeCD])
+
+      const result = merge(graphA, graphB)
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(3) // A, B, D
+      expect(result.edges).toHaveLength(2) // AB and CD
+      
+      // Verify edge connectivity is preserved
+      const abEdge = result.edges.find(e => e.id === edgeAB.id)
+      const cdEdge = result.edges.find(e => e.id === edgeCD.id)
+      
+      expect(abEdge).toBeDefined()
+      expect(cdEdge).toBeDefined()
+      expect(abEdge!.sourceId).toBe(nodeA.id)
+      expect(abEdge!.targetId).toBe(nodeB.id)
+      expect(cdEdge!.sourceId).toBe(nodeC.id)
+      expect(cdEdge!.targetId).toBe(nodeD.id)
     })
   })
 }) 
