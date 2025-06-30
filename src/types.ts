@@ -10,43 +10,47 @@ export type EdgeId = `edge_${string}`;
 
 export type PropertyId = `property_${string}`;
 
-export type Property = {
+export type AsyncObject<T> = T & {
+    ready?: Promise<void>;
+};
+
+export type Property = AsyncObject<{
     id: PropertyId;
     name: string;
     description: string;
 
-    embedding: Embedding;
-};
+    embedding: Embedding | null;
+}>;
 
-export type Node = {
+export type Node = AsyncObject<{
     id: NodeId;
     name: string;
     description: string;
 
-    embedding: Embedding;
+    embedding: Embedding | null;
 
     properties: Property[];
-};
+}>;
 
-export type Edge = {
+export type Edge = AsyncObject<{
     id: EdgeId;
     name: string;
     description: string;
 
-    embedding: Embedding;
+    embedding: Embedding | null;
 
     sourceId: NodeId;
     targetId: NodeId;
 
     properties: Property[];
-};
+}>;
 
-export type Graph = {
+export type Graph = AsyncObject<{
     id: GraphId;
 
     nodes: Node[];
     edges: Edge[];
-};
+}>;
 
 export type NodeCandidate = {
     referenceId: NodeId;

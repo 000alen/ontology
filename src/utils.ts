@@ -1,4 +1,5 @@
 import { defaultContext } from "./context.js";
+import { log } from "./logging.js";
 import { Edge, EdgeId, Graph, GraphId, Node, NodeId, Property, PropertyId } from "./types.js"
 import { Context } from "./types.js"
 import { embed } from "ai";
@@ -15,59 +16,107 @@ function getEdgeDescription(edge: Omit<Edge, "id" | "embedding">): string {
     return `${edge.name}: ${edge.description}\n${edge.properties.map(getPropertyDescription).join("\n")}`
 }
 
-export async function createProperty(id: string, data: Omit<Property, "id" | "embedding">, context?: Context): Promise<Property> {
+export function createProperty(id: string, data: Omit<Property, "id" | "embedding">, context?: Context): Property {
     context ??= defaultContext;
 
-    const embedding = await embed({
-        model: context.embeddingModel,
-        value: getPropertyDescription(data)
-    })
-        .then((result) => result.embedding)
+    const ready = async function (this: Property) {
+        this.embedding = await embed({
+            model: context.embeddingModel,
+            value: getPropertyDescription(data)
+        })
+            .then((result) => result.embedding)
+    }
 
-    return {
+    const property = {
         id: `property_${id}` satisfies PropertyId,
         ...data,
-        embedding
-    }
+        embedding: null
+    } satisfies Property;
+
+    property.ready = ready.call(property)
+
+    return property;
 }
 
-export async function createNode(id: string, data: Omit<Node, "id" | "embedding">, context?: Context): Promise<Node> {
+export function createNode(id: string, data: Omit<Node, "id" | "embedding">, context?: Context): Node {
     context ??= defaultContext;
 
-    const embedding = await embed({
-        model: context.embeddingModel,
-        value: getNodeDescription(data)
-    })
-        .then((result) => result.embedding)
+    const ready = async function (this: Node) {
+        await Promise
+            .all(this.properties.filter((p) => !!p.ready).map((p) => p))
+            .catch((error) => {
+                log(error)
+            })
 
-    return {
+        this.embedding = await embed({
+            model: context.embeddingModel,
+            value: getNodeDescription(data)
+        })
+            .then((result) => result.embedding)
+    }
+
+    const node = {
         id: `node_${id}` satisfies NodeId,
         ...data,
-        embedding
-    }
+        embedding: null
+    } satisfies Node;
+
+    node.ready = ready.call(node);
+
+    return node;
 }
 
-export async function createEdge(id: string, data: Omit<Edge, "id" | "embedding">, context?: Context): Promise<Edge> {
+// ! NOTE(@000alen): maybe the edge embedding should also contain a representation of the source and target nodes
+export function createEdge(id: string, data: Omit<Edge, "id" | "embedding">, context?: Context): Edge {
     context ??= defaultContext;
 
-    const embedding = await embed({
-        model: context.embeddingModel,
-        value: getEdgeDescription(data)
-    })
-        .then((result) => result.embedding)
+    const ready = async function (this: Edge) {
+        await Promise
+            .all(this.properties.filter((p) => !!p.ready).map((p) => p))
+            .catch((error) => {
+                log(error)
+            })
 
-    return {
+        this.embedding = await embed({
+            model: context.embeddingModel,
+            value: getEdgeDescription(data)
+        })
+            .then((result) => result.embedding)
+    }
+
+    const edge = {
         id: `edge_${id}` satisfies EdgeId,
         ...data,
-        embedding
-    }
+        embedding: null
+    } satisfies Edge;
+
+    edge.ready = ready.call(edge);
+
+    return edge;
 }
 
 export function createGraph(id: string, data: Omit<Graph, "id" | "embedding">, context?: Context): Graph {
     context ??= defaultContext;
 
-    return {
+    const ready = async function (this: Graph) {
+        const promises = [
+            ...this.nodes.filter((n) => !!n.ready).map((n) => n.ready),
+            ...this.edges.filter((e) => !!e.ready).map((e) => e.ready),
+        ]
+
+        await Promise
+            .all(promises)
+            .catch((error) => {
+                log(error)
+            })
+    }
+
+    const graph = {
         id: `graph_${id}` satisfies GraphId,
         ...data
-    }
+    } satisfies Graph;
+
+    graph.ready = ready.call(graph);
+
+    return graph;
 }

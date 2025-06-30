@@ -9,65 +9,71 @@ import {
 } from "ontology";
 import { plot } from "ontology-plot";
 
-async function main() {
-    const [oOrganizationEntity, oUserEntity, oMembershipEntity] = await Promise.all([
-        createNode("organization", {
-            name: "Organization",
-            description: "An organization of the application",
-            properties: []
-        }),
-        createNode("user", {
-            name: "User",
-            description: "A user of the application",
-            properties: []
-        }),
-        createNode("membership", {
-            name: "Membership",
-            description: "A membership of an organization",
-            properties: []
-        }),
-    ]);
-
-    const [oOrganizationMembershipEdge, oUserMembershipEdge] = await Promise.all([
-        createEdge("organization_membership", {
-            name: "Organization Membership",
-            description: "A membership of an organization",
-            properties: [],
-            sourceId: oOrganizationEntity.id,
-            targetId: oMembershipEntity.id,
-        }),
-        createEdge("user_membership", {
-            name: "User Membership",
-            description: "A membership of a user",
-            properties: [],
-            sourceId: oUserEntity.id,
-            targetId: oMembershipEntity.id,
-        }),
-    ]);
-
-    const o = createGraph("o", {
-        nodes: [oOrganizationEntity, oUserEntity, oMembershipEntity],
-        edges: [oOrganizationMembershipEdge, oUserMembershipEdge]
+async function getOntology() {
+    const organizationEntity = createNode("organization", {
+        name: "Organization",
+        description: "An organization of the application",
+        properties: []
     });
 
+    const userEntity = createNode("user", {
+        name: "User",
+        description: "A user of the application",
+        properties: []
+    });
+
+    const membershipEntity = createNode("membership", {
+        name: "Membership",
+        description: "A membership of an organization",
+        properties: []
+    });
+
+    const organizationMembershipEdge = createEdge("organization_membership", {
+        name: "Organization Membership",
+        description: "A membership of an organization",
+        properties: [],
+        sourceId: organizationEntity.id,
+        targetId: membershipEntity.id,
+    });
+
+    const userMembershipEdge = createEdge("user_membership", {
+        name: "User Membership",
+        description: "A membership of a user",
+        properties: [],
+        sourceId: userEntity.id,
+        targetId: membershipEntity.id,
+    });
+
+    const o = createGraph("o", {
+        nodes: [organizationEntity, userEntity, membershipEntity],
+        edges: [organizationMembershipEdge, userMembershipEdge]
+    });
+
+    await o.ready;
+
+    return o;
+}
+
+async function main() {
+    const o = await getOntology();
     plot(o);
 
-    const [nameProperty, emailProperty, passwordProperty] = await Promise.all([
-        createProperty("name", {
-            name: "name",
-            description: "The name of the user",
-        }),
-        createProperty("email", {
-            name: "email",
-            description: "The email of the user",
-        }),
-        createProperty("password", {
-            name: "password",
-            description: "The password of the user",
-        }),
-    ]);
+    const nameProperty = createProperty("name", {
+        name: "name",
+        description: "The name of the user",
+    });
 
-    const userEntity = await createNode("user", {
+    const emailProperty = createProperty("email", {
+        name: "email",
+        description: "The email of the user",
+    });
+
+    const passwordProperty = createProperty("password", {
+        name: "password",
+        description: "The password of the user",
+    });
+
+    const userEntity = createNode("user", {
         name: "User",
         description: "A user of the system",
         properties: [
@@ -77,14 +83,30 @@ async function main() {
         ]
     });
 
-    const schema = createGraph("schema", {
-        nodes: [userEntity],
-        edges: []
+    const postEntity = createNode("post", {
+        name: "Post",
+        description: "A post of the system",
+        properties: []
     });
 
-    plot(schema);
+    const userPostEdge = createEdge("user_post", {
+        name: "User Post",
+        description: "A post of a user",
+        properties: [],
+        sourceId: userEntity.id,
+        targetId: postEntity.id,
+    });
 
-    const refined = merge(schema, o);
+    const schemaGraph = createGraph("schema", {
+        nodes: [userEntity, postEntity],
+        edges: [userPostEdge]
+    });
+
+    await schemaGraph.ready;
+
+    plot(schemaGraph);
+
+    const refined = merge(schemaGraph, o);
 
     plot(refined);
 
