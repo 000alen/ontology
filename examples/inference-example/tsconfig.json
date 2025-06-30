@@ -1,9 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "target": "es2020",
-    "downlevelIteration": true
+    "outDir": "./dist"
   },
   "include": [
     "src/**/*",

@@ -45,9 +45,43 @@ importers:
 
   examples/causal-analysis:
     dependencies:
+      '@ai-sdk/openai':
+        specifier: ^1.0.67
+        version: 1.3.22(zod@3.25.67)
+      ai:
+        specifier: ^4.0.46
+        version: 4.3.16(react@19.1.0)(zod@3.25.67)
       ontology:
         specifier: workspace:*
         version: link:../..
+      ontology-plot:
+        specifier: workspace:*
+        version: link:../../packages/plot
+      zod:
+        specifier: ^3.25.0
+        version: 3.25.67
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.7
+        version: 24.0.7
+      dotenv:
+        specifier: ^17.0.0
+        version: 17.0.0
+      tsx:
+        specifier: ^4.6.2
+        version: 4.20.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  examples/inference-example:
+    dependencies:
+      ontology:
+        specifier: workspace:*
+        version: link:../..
+      ontology-inference:
+        specifier: workspace:*
+        version: link:../../packages/inference
       ontology-plot:
         specifier: workspace:*
         version: link:../../packages/plot
@@ -107,6 +141,19 @@ importers:
         version: 4.20.3
       typescript:
         specifier: ^5.8.3
+        version: 5.8.3
+
+  packages/inference:
+    dependencies:
+      ontology:
+        specifier: workspace:*
+        version: link:../..
+    devDependencies:
+      '@types/node':
+        specifier: ^20.10.5
+        version: 20.19.2
+      typescript:
+        specifier: ^5.3.3
         version: 5.8.3
 
   packages/plot:

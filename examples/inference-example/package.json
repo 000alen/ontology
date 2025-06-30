@@ -1,23 +1,20 @@
 {
-  "name": "examples-causal-analysis",
+  "name": "examples-inference",
   "version": "1.0.0",
-  "description": "Environmental causal analysis example demonstrating the incident function for R→B reachability subgraphs",
+  "description": "Example demonstrating property inference through causal networks using LLM-powered propagation",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit",
     "start": "tsx index.ts",
-    "dev": "tsx watch index.ts",
-    "inference": "tsx property-inference.ts",
-    "inference:dev": "tsx watch property-inference.ts"
+    "dev": "tsx watch index.ts"
   },
   "keywords": [
     "ontology",
+    "example",
+    "inference",
     "causal-analysis",
-    "environmental",
-    "incident",
-    "reachability",
-    "subgraph"
+    "llm"
   ],
   "author": "",
   "license": "ISC",
@@ -25,9 +22,7 @@
   "dependencies": {
     "ontology": "workspace:*",
     "ontology-plot": "workspace:*",
-    "ai": "^4.0.46",
-    "@ai-sdk/openai": "^1.0.67",
-    "zod": "^3.25.0"
+    "ontology-inference": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.8.3",
