@@ -71,7 +71,7 @@ export function* similarNodes(graph: Graph, query: Graph, options?: { n: number;
     yield* take(cartesianProduct(candidates_ij), n);
 }
 
-function* iterateEdges(graph: Graph, subset: NodeId[], options?: { n: number; }): Generator<Edge> {
+export function* iterateEdges(graph: Graph, subset: NodeId[], options?: { n: number; }): Generator<Edge> {
     if (subset.length === 0) {
         throw new Error("Subset has no nodes");
     }
@@ -363,6 +363,144 @@ export function merge(a: Graph, b: Graph): Graph {
         id: `graph_${Math.random().toString(36).substring(2, 15)}` as GraphId,
         nodes,
         edges
+    };
+}
+
+/**
+ * Extracts the maximal R→B reachability subgraph from a directed graph.
+ * 
+ * This function implements the R→B Reachability Subgraph algorithm, which finds the largest
+ * subgraph where every directed path starts in the red vertex set (sources) and ends in the
+ * blue vertex set (targets). The resulting subgraph satisfies:
+ * - Every vertex lies on at least one directed path from sources to targets
+ * - Source vertices have in-degree 0 (no incoming edges)
+ * - Target vertices have out-degree 0 (no outgoing edges)
+ * 
+ * ## Algorithm Phases
+ * 
+ * 1. **Forward Traversal**: DFS from all source vertices to find vertices reachable from sources
+ * 2. **Backward Traversal**: DFS from all target vertices in reversed graph to find vertices that can reach targets
+ * 3. **Intersection**: Compute vertices that are both reachable from sources AND can reach targets
+ * 4. **Induced Subgraph**: Create subgraph containing only intersection vertices and their connecting edges
+ * 5. **Boundary Enforcement**: Remove edges violating boundary constraints (in-edges to sources, out-edges from targets)
+ * 
+ * ## Time Complexity
+ * - **Time**: O(V + E) where V is vertices and E is edges
+ * - **Space**: O(V) for visited sets and intermediate storage
+ * 
+ * ## Edge Cases
+ * - Returns empty graph if no path exists between any source and target
+ * - Handles cycles correctly (vertices in cycles are included if on source→target paths)
+ * - When a vertex is both source and target, boundary constraints may remove all edges
+ * - Empty source or target arrays result in empty output graph
+ * - Non-existent node IDs are safely ignored
+ * 
+ * @param graph - The input directed graph to extract subgraph from
+ * @param sources - Array of node IDs representing source vertices (red set R)
+ * @param targets - Array of node IDs representing target vertices (blue set B)
+ * 
+ * @returns A new graph containing the maximal R→B reachability subgraph with:
+ *   - Only vertices lying on source→target paths
+ *   - No in-edges to source vertices
+ *   - No out-edges from target vertices
+ *   - Empty graph if no valid paths exist
+ * 
+ * @example
+ * ```typescript
+ * // Simple linear path: A → B → C
+ * const result = incident(graph, ['node_A'], ['node_C']);
+ * // Returns subgraph with nodes [A, B, C] and edges [A→B, B→C]
+ * 
+ * // Multiple sources and targets: A,B → ... → D,E
+ * const result = incident(graph, ['node_A', 'node_B'], ['node_D', 'node_E']);
+ * // Returns all vertices and edges on paths from {A,B} to {D,E}
+ * 
+ * // Disconnected components
+ * const result = incident(graph, ['node_A'], ['node_Z']);
+ * // Returns empty graph if no path exists from A to Z
+ * ```
+ * 
+ * @see {@link https://en.wikipedia.org/wiki/Reachability | Graph Reachability}
+ */
+export function incident(graph: Graph, sources: NodeId[], targets: NodeId[]): Graph {
+    // Helper function for DFS traversal
+    function dfs(graph: Graph, startNodes: NodeId[]): Set<NodeId> {
+        const visited = new Set<NodeId>();
+        const stack: NodeId[] = [...startNodes];
+        
+        while (stack.length > 0) {
+            const current = stack.pop()!;
+            if (visited.has(current)) continue;
+            
+            visited.add(current);
+            
+            // Find all edges from current node
+            for (const edge of graph.edges) {
+                if (edge.sourceId === current && !visited.has(edge.targetId)) {
+                    stack.push(edge.targetId);
+                }
+            }
+        }
+        
+        return visited;
+    }
+    
+    // Helper function to reverse the graph
+    function reverseGraph(graph: Graph): Graph {
+        return {
+            id: `${graph.id}_reversed` as GraphId,
+            nodes: [...graph.nodes],
+            edges: graph.edges.map(edge => ({
+                ...edge,
+                id: `${edge.id}_reversed` as EdgeId,
+                sourceId: edge.targetId,
+                targetId: edge.sourceId
+            }))
+        };
+    }
+    
+    // Phase 1: Forward DFS from sources (R) → set F of vertices reachable from R
+    const F = dfs(graph, sources);
+    
+    // Phase 2: Forward DFS from targets (B) in reversed graph → set B' of vertices that can reach B
+    const reversedGraph = reverseGraph(graph);
+    const Bprime = dfs(reversedGraph, targets);
+    
+    // Phase 3: Intersection I = F ∩ B' gives vertices lying on at least one R→B path
+    const I = new Set<NodeId>();
+    for (const nodeId of F) {
+        if (Bprime.has(nodeId)) {
+            I.add(nodeId);
+        }
+    }
+    
+    // If no intersection, return empty graph (no R→B path exists)
+    if (I.size === 0) {
+        return {
+            id: `graph_${Math.random().toString(36).substring(2, 15)}` as GraphId,
+            nodes: [],
+            edges: []
+        };
+    }
+    
+    // Phase 4: Induce subgraph H = G[I]
+    const inducedNodes = graph.nodes.filter(node => I.has(node.id));
+    const inducedEdges = graph.edges.filter(edge => 
+        I.has(edge.sourceId) && I.has(edge.targetId)
+    );
+    
+    // Phase 5: Delete edges (u,v) with v ∈ R or u ∈ B (enforces boundary degrees)
+    const sourcesSet = new Set(sources);
+    const targetsSet = new Set(targets);
+    
+    const finalEdges = inducedEdges.filter(edge => 
+        !sourcesSet.has(edge.targetId) && !targetsSet.has(edge.sourceId)
+    );
+    
+    return {
+        id: `graph_${Math.random().toString(36).substring(2, 15)}` as GraphId,
+        nodes: inducedNodes,
+        edges: finalEdges
     };
 }
 

@@ -1,0 +1,33 @@
+{
+  "name": "examples-causal-analysis",
+  "version": "1.0.0",
+  "description": "Environmental causal analysis example demonstrating the incident function for R→B reachability subgraphs",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "start": "tsx index.ts",
+    "dev": "tsx watch index.ts"
+  },
+  "keywords": [
+    "ontology",
+    "causal-analysis",
+    "environmental",
+    "incident",
+    "reachability",
+    "subgraph"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.11.1",
+  "dependencies": {
+    "ontology": "workspace:*",
+    "ontology-plot": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "@types/node": "^24.0.7",
+    "dotenv": "^17.0.0",
+    "tsx": "^4.6.2"
+  }
+} 

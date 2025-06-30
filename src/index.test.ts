@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { match, intersect, merge } from './index.js'
+import { match, intersect, merge, incident } from './index.js'
 import { Graph, Node, Edge, NodeId, EdgeId } from './types.js'
 
 // Mock cosineSimilarity from 'ai' package
@@ -400,7 +400,7 @@ describe('Graph Matching Algorithms', () => {
       expect(result).toBeDefined()
       expect(result.nodes).toHaveLength(4)
       expect(result.edges).toHaveLength(0)
-      
+
       const nodeIds = result.nodes.map(n => n.id).sort()
       expect(nodeIds).toEqual([nodeA.id, nodeB.id, nodeC.id, nodeD.id].sort())
     })
@@ -419,7 +419,7 @@ describe('Graph Matching Algorithms', () => {
       expect(result).toBeDefined()
       expect(result.nodes).toHaveLength(3) // A, B from graphA + D from graphB (C is similar to A)
       expect(result.edges).toHaveLength(0)
-      
+
       const nodeIds = result.nodes.map(n => n.id).sort()
       expect(nodeIds).toEqual([nodeA.id, nodeB.id, nodeD.id].sort())
     })
@@ -440,7 +440,7 @@ describe('Graph Matching Algorithms', () => {
       expect(result).toBeDefined()
       expect(result.nodes).toHaveLength(4)
       expect(result.edges).toHaveLength(2)
-      
+
       const edgeIds = result.edges.map(e => e.id).sort()
       expect(edgeIds).toEqual([edgeAB.id, edgeCD.id].sort())
     })
@@ -484,10 +484,10 @@ describe('Graph Matching Algorithms', () => {
       expect(result).toBeDefined()
       expect(result.nodes).toHaveLength(3) // A, B, Z
       expect(result.edges).toHaveLength(2) // AB, YZ (XY is similar to AB)
-      
+
       const nodeIds = result.nodes.map(n => n.id).sort()
       expect(nodeIds).toEqual([nodeA.id, nodeB.id, nodeZ.id].sort())
-      
+
       const edgeIds = result.edges.map(e => e.id).sort()
       expect(edgeIds).toEqual([edgeAB.id, edgeYZ.id].sort())
     })
@@ -524,17 +524,383 @@ describe('Graph Matching Algorithms', () => {
       expect(result).toBeDefined()
       expect(result.nodes).toHaveLength(3) // A, B, D
       expect(result.edges).toHaveLength(2) // AB and CD
-      
+
       // Verify edge connectivity is preserved
       const abEdge = result.edges.find(e => e.id === edgeAB.id)
       const cdEdge = result.edges.find(e => e.id === edgeCD.id)
-      
+
       expect(abEdge).toBeDefined()
       expect(cdEdge).toBeDefined()
       expect(abEdge!.sourceId).toBe(nodeA.id)
       expect(abEdge!.targetId).toBe(nodeB.id)
       expect(cdEdge!.sourceId).toBe(nodeC.id)
       expect(cdEdge!.targetId).toBe(nodeD.id)
+    })
+  })
+
+  describe('incident function', () => {
+    it('should return empty graph when no path exists from sources to targets', () => {
+      // Create disconnected graph: A, B isolated from C, D
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const nodeC = createNode('C', [0, 0, 1])
+      const nodeD = createNode('D', [1, 1, 0])
+
+      // Only connect A->B, leaving C and D isolated
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const graph = createGraph('graph', [nodeA, nodeB, nodeC, nodeD], [edgeAB])
+
+      // Try to find path from A to C (no path exists)
+      const result = incident(graph, [nodeA.id], [nodeC.id])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(0)
+      expect(result.edges).toHaveLength(0)
+    })
+
+    it('should find simple direct path from source to target', () => {
+      // Simple graph: A -> B
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const graph = createGraph('graph', [nodeA, nodeB], [edgeAB])
+
+      const result = incident(graph, [nodeA.id], [nodeB.id])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(2)
+      expect(result.edges).toHaveLength(1)
+      expect(result.edges[0]!.id).toBe(edgeAB.id)
+
+      // Verify boundary conditions: no in-edges to sources, no out-edges from targets
+      const sourceInDegree = result.edges.filter((e: Edge) => e.targetId === nodeA.id).length
+      const targetOutDegree = result.edges.filter((e: Edge) => e.sourceId === nodeB.id).length
+      expect(sourceInDegree).toBe(0)
+      expect(targetOutDegree).toBe(0)
+    })
+
+    it('should find multi-hop path from source to target', () => {
+      // Linear graph: A -> B -> C -> D
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const nodeC = createNode('C', [0, 0, 1])
+      const nodeD = createNode('D', [1, 1, 0])
+
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const edgeBC = createEdge('BC', nodeB.id, nodeC.id, [0, 1])
+      const edgeCD = createEdge('CD', nodeC.id, nodeD.id, [1, 1])
+      const graph = createGraph('graph', [nodeA, nodeB, nodeC, nodeD], [edgeAB, edgeBC, edgeCD])
+
+      const result = incident(graph, [nodeA.id], [nodeD.id])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(4)
+      expect(result.edges).toHaveLength(3)
+
+      // All original edges should be preserved
+      const edgeIds = result.edges.map((e: Edge) => e.id).sort()
+      expect(edgeIds).toEqual([edgeAB.id, edgeBC.id, edgeCD.id].sort())
+    })
+
+    it('should handle multiple sources and targets', () => {
+      // Graph: A -> C <- B, C -> D, C -> E
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const nodeC = createNode('C', [0, 0, 1])
+      const nodeD = createNode('D', [1, 1, 0])
+      const nodeE = createNode('E', [1, 0, 1])
+
+      const edgeAC = createEdge('AC', nodeA.id, nodeC.id, [1, 0])
+      const edgeBC = createEdge('BC', nodeB.id, nodeC.id, [0, 1])
+      const edgeCD = createEdge('CD', nodeC.id, nodeD.id, [1, 1])
+      const edgeCE = createEdge('CE', nodeC.id, nodeE.id, [0, 1])
+      const graph = createGraph('graph', [nodeA, nodeB, nodeC, nodeD, nodeE], [edgeAC, edgeBC, edgeCD, edgeCE])
+
+      const result = incident(graph, [nodeA.id, nodeB.id], [nodeD.id, nodeE.id])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(5)
+      expect(result.edges).toHaveLength(4)
+
+      // All edges should be preserved as they're all on A→D or B→E paths
+      const edgeIds = result.edges.map((e: Edge) => e.id).sort()
+      expect(edgeIds).toEqual([edgeAC.id, edgeBC.id, edgeCD.id, edgeCE.id].sort())
+    })
+
+    it('should exclude vertices not on any source-to-target path', () => {
+      // Graph: A -> B -> C, D -> E (D,E isolated from A->B->C path)
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const nodeC = createNode('C', [0, 0, 1])
+      const nodeD = createNode('D', [1, 1, 0])
+      const nodeE = createNode('E', [1, 0, 1])
+
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const edgeBC = createEdge('BC', nodeB.id, nodeC.id, [0, 1])
+      const edgeDE = createEdge('DE', nodeD.id, nodeE.id, [1, 1])
+      const graph = createGraph('graph', [nodeA, nodeB, nodeC, nodeD, nodeE], [edgeAB, edgeBC, edgeDE])
+
+      const result = incident(graph, [nodeA.id], [nodeC.id])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(3) // Only A, B, C
+      expect(result.edges).toHaveLength(2) // Only AB, BC
+
+      const nodeIds = result.nodes.map((n: Node) => n.id).sort()
+      expect(nodeIds).toEqual([nodeA.id, nodeB.id, nodeC.id].sort())
+
+      const edgeIds = result.edges.map((e: Edge) => e.id).sort()
+      expect(edgeIds).toEqual([edgeAB.id, edgeBC.id].sort())
+    })
+
+    it('should enforce boundary degrees: no in-edges to sources, no out-edges from targets', () => {
+      // Graph: X -> A -> B -> C <- Y (where A is source, C is target)
+      const nodeX = createNode('X', [1, 0, 0])
+      const nodeA = createNode('A', [0, 1, 0])
+      const nodeB = createNode('B', [0, 0, 1])
+      const nodeC = createNode('C', [1, 1, 0])
+      const nodeY = createNode('Y', [1, 0, 1])
+
+      const edgeXA = createEdge('XA', nodeX.id, nodeA.id, [1, 0])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [0, 1])
+      const edgeBC = createEdge('BC', nodeB.id, nodeC.id, [1, 1])
+      const edgeYC = createEdge('YC', nodeY.id, nodeC.id, [0, 1])
+      const graph = createGraph('graph', [nodeX, nodeA, nodeB, nodeC, nodeY], [edgeXA, edgeAB, edgeBC, edgeYC])
+
+      const result = incident(graph, [nodeA.id], [nodeC.id])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(3) // A, B, C
+      expect(result.edges).toHaveLength(2) // AB, BC (XA and YC should be removed)
+
+      // Verify boundary conditions
+      const sourceInEdges = result.edges.filter((e: Edge) => e.targetId === nodeA.id)
+      const targetOutEdges = result.edges.filter((e: Edge) => e.sourceId === nodeC.id)
+      expect(sourceInEdges).toHaveLength(0)
+      expect(targetOutEdges).toHaveLength(0)
+
+      const edgeIds = result.edges.map((e: Edge) => e.id).sort()
+      expect(edgeIds).toEqual([edgeAB.id, edgeBC.id].sort())
+    })
+
+    it('should handle branching paths correctly', () => {
+      // Diamond graph: A -> B -> D, A -> C -> D
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const nodeC = createNode('C', [0, 0, 1])
+      const nodeD = createNode('D', [1, 1, 0])
+
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const edgeAC = createEdge('AC', nodeA.id, nodeC.id, [0, 1])
+      const edgeBD = createEdge('BD', nodeB.id, nodeD.id, [1, 1])
+      const edgeCD = createEdge('CD', nodeC.id, nodeD.id, [0, 1])
+      const graph = createGraph('graph', [nodeA, nodeB, nodeC, nodeD], [edgeAB, edgeAC, edgeBD, edgeCD])
+
+      const result = incident(graph, [nodeA.id], [nodeD.id])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(4)
+      expect(result.edges).toHaveLength(4)
+
+      // All edges should be preserved as they're all on A→D paths
+      const edgeIds = result.edges.map((e: Edge) => e.id).sort()
+      expect(edgeIds).toEqual([edgeAB.id, edgeAC.id, edgeBD.id, edgeCD.id].sort())
+    })
+
+    it('should handle cycles in the graph', () => {
+      // Graph with cycle: A -> B -> C -> B, C -> D
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const nodeC = createNode('C', [0, 0, 1])
+      const nodeD = createNode('D', [1, 1, 0])
+
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const edgeBC = createEdge('BC', nodeB.id, nodeC.id, [0, 1])
+      const edgeCB = createEdge('CB', nodeC.id, nodeB.id, [1, 1]) // Creates cycle
+      const edgeCD = createEdge('CD', nodeC.id, nodeD.id, [0, 1])
+      const graph = createGraph('graph', [nodeA, nodeB, nodeC, nodeD], [edgeAB, edgeBC, edgeCB, edgeCD])
+
+      const result = incident(graph, [nodeA.id], [nodeD.id])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(4)
+      expect(result.edges).toHaveLength(4)
+
+      // All edges should be preserved as they're all reachable from A and can reach D
+      const edgeIds = result.edges.map((e: Edge) => e.id).sort()
+      expect(edgeIds).toEqual([edgeAB.id, edgeBC.id, edgeCB.id, edgeCD.id].sort())
+    })
+
+    it('should handle self-loops correctly', () => {
+      // Graph: A -> B, B -> B (self-loop), B -> C
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const nodeC = createNode('C', [0, 0, 1])
+
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const edgeBB = createEdge('BB', nodeB.id, nodeB.id, [0, 1]) // Self-loop
+      const edgeBC = createEdge('BC', nodeB.id, nodeC.id, [1, 1])
+      const graph = createGraph('graph', [nodeA, nodeB, nodeC], [edgeAB, edgeBB, edgeBC])
+
+      const result = incident(graph, [nodeA.id], [nodeC.id])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(3)
+      expect(result.edges).toHaveLength(3)
+
+      // All edges should be preserved
+      const edgeIds = result.edges.map((e: Edge) => e.id).sort()
+      expect(edgeIds).toEqual([edgeAB.id, edgeBB.id, edgeBC.id].sort())
+    })
+
+    it('should handle empty sources array', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const graph = createGraph('graph', [nodeA, nodeB], [edgeAB])
+
+      const result = incident(graph, [], [nodeB.id])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(0)
+      expect(result.edges).toHaveLength(0)
+    })
+
+    it('should handle empty targets array', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const graph = createGraph('graph', [nodeA, nodeB], [edgeAB])
+
+      const result = incident(graph, [nodeA.id], [])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(0)
+      expect(result.edges).toHaveLength(0)
+    })
+
+    it('should handle case where source is also target', () => {
+      // Graph: A -> B -> A (A is both source and target)
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const edgeBA = createEdge('BA', nodeB.id, nodeA.id, [0, 1])
+      const graph = createGraph('graph', [nodeA, nodeB], [edgeAB, edgeBA])
+
+      const result = incident(graph, [nodeA.id], [nodeA.id])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(2) // A and B are reachable
+      expect(result.edges).toHaveLength(0) // Both edges removed due to boundary constraints
+
+      // When A is both source and target:
+      // - AB removed because A ∈ targets (no out-edges from targets)
+      // - BA removed because A ∈ sources (no in-edges to sources)
+      // This creates an isolated subgraph with the cycle nodes but no connecting edges
+    })
+
+    it('should handle non-existent source nodes', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const graph = createGraph('graph', [nodeA, nodeB], [edgeAB])
+
+      const nonExistentId = 'node_nonexistent' as NodeId
+      const result = incident(graph, [nonExistentId], [nodeB.id])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(0)
+      expect(result.edges).toHaveLength(0)
+    })
+
+    it('should handle non-existent target nodes', () => {
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const graph = createGraph('graph', [nodeA, nodeB], [edgeAB])
+
+      const nonExistentId = 'node_nonexistent' as NodeId
+      const result = incident(graph, [nodeA.id], [nonExistentId])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(0)
+      expect(result.edges).toHaveLength(0)
+    })
+
+    it('should handle large branching graph efficiently', () => {
+      // Create a larger graph: S -> {I1, I2, I3} -> {T1, T2}
+      const nodeS = createNode('S', [1, 0, 0])
+      const nodeI1 = createNode('I1', [0, 1, 0])
+      const nodeI2 = createNode('I2', [0, 0, 1])
+      const nodeI3 = createNode('I3', [1, 1, 0])
+      const nodeT1 = createNode('T1', [1, 0, 1])
+      const nodeT2 = createNode('T2', [0, 1, 1])
+
+      const edges = [
+        createEdge('SI1', nodeS.id, nodeI1.id, [1, 0]),
+        createEdge('SI2', nodeS.id, nodeI2.id, [0, 1]),
+        createEdge('SI3', nodeS.id, nodeI3.id, [1, 1]),
+        createEdge('I1T1', nodeI1.id, nodeT1.id, [1, 0]),
+        createEdge('I1T2', nodeI1.id, nodeT2.id, [0, 1]),
+        createEdge('I2T1', nodeI2.id, nodeT1.id, [1, 1]),
+        createEdge('I2T2', nodeI2.id, nodeT2.id, [0, 1]),
+        createEdge('I3T1', nodeI3.id, nodeT1.id, [1, 0]),
+        createEdge('I3T2', nodeI3.id, nodeT2.id, [1, 1])
+      ]
+
+      const graph = createGraph('graph', [nodeS, nodeI1, nodeI2, nodeI3, nodeT1, nodeT2], edges)
+
+      const result = incident(graph, [nodeS.id], [nodeT1.id, nodeT2.id])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(6) // All nodes
+      expect(result.edges).toHaveLength(9) // All edges
+
+      // Verify boundary conditions
+      const sourceInEdges = result.edges.filter(e => e.targetId === nodeS.id)
+      const targetOutEdges = result.edges.filter(e =>
+        e.sourceId === nodeT1.id || e.sourceId === nodeT2.id
+      )
+      expect(sourceInEdges).toHaveLength(0)
+      expect(targetOutEdges).toHaveLength(0)
+    })
+
+    it('should preserve graph structure invariants', () => {
+      // Test that the resulting graph maintains proper structure
+      const nodeA = createNode('A', [1, 0, 0])
+      const nodeB = createNode('B', [0, 1, 0])
+      const nodeC = createNode('C', [0, 0, 1])
+
+      const edgeAB = createEdge('AB', nodeA.id, nodeB.id, [1, 0])
+      const edgeBC = createEdge('BC', nodeB.id, nodeC.id, [0, 1])
+      const graph = createGraph('graph', [nodeA, nodeB, nodeC], [edgeAB, edgeBC])
+
+      const result = incident(graph, [nodeA.id], [nodeC.id])
+
+      expect(result).toBeDefined()
+
+      // Verify all edge endpoints exist in nodes
+      for (const edge of result.edges) {
+        const sourceExists = result.nodes.some(n => n.id === edge.sourceId)
+        const targetExists = result.nodes.some(n => n.id === edge.targetId)
+        expect(sourceExists).toBe(true)
+        expect(targetExists).toBe(true)
+      }
+
+      // Verify result has valid graph structure
+      expect(result.id).toBeDefined()
+      expect(Array.isArray(result.nodes)).toBe(true)
+      expect(Array.isArray(result.edges)).toBe(true)
+    })
+
+    it('should handle empty graph', () => {
+      const emptyGraph = createGraph('empty', [], [])
+      const result = incident(emptyGraph, [], [])
+
+      expect(result).toBeDefined()
+      expect(result.nodes).toHaveLength(0)
+      expect(result.edges).toHaveLength(0)
     })
   })
 }) 
