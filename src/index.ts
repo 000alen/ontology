@@ -41,9 +41,17 @@ export function* similarNodes(graph: Graph, query: Graph, options?: { n: number;
     const candidates_ij: NodeCandidate[][] = [];
 
     for (const queryNode of query.nodes) {
+        if (!queryNode.embedding) {
+            throw new Error("query node must be ready")
+        }
+
         const candidates_i: NodeCandidate[] = [];
 
         for (const graphNode of graph.nodes) {
+            if (!graphNode.embedding) {
+                throw new Error("graph node must be ready")
+            }
+
             const similarity = cosineSimilarity(queryNode.embedding, graphNode.embedding);
 
             if (similarity < threshold) {
@@ -107,6 +115,10 @@ export function* similarEdges(graph: Graph, query: Graph, nodeCandidates: NodeCa
     const candidates_ij: EdgeCandidate[][] = [];
 
     for (const queryEdge of query.edges) {
+        if (!queryEdge.embedding) {
+            throw new Error("graph edge must be ready")
+        }
+
         const candidates_i: EdgeCandidate[] = [];
 
         // Get the expected source and target nodes for this query edge
@@ -119,6 +131,10 @@ export function* similarEdges(graph: Graph, query: Graph, nodeCandidates: NodeCa
         }
 
         for (const graphEdge of incidentEdges) {
+            if (!graphEdge.embedding) {
+                throw new Error("graph edge must be ready")
+            }
+
             // Only consider edges that connect the correctly mapped nodes
             if (graphEdge.sourceId !== expectedSourceId || graphEdge.targetId !== expectedTargetId) {
                 continue;
@@ -193,10 +209,18 @@ export function match(graph: Graph, query: Graph): Graph | undefined {
 }
 
 export function findNode(graph: Graph, node: Node, options?: { threshold: number; }): Node | undefined {
+    if (!node.embedding) {
+        throw new Error("node must be ready")
+    }
+
     const { threshold = DEFAULT_THRESHOLD } = options ?? {};
 
     const candidates: NodeCandidate[] = [];
     for (const graphNode of graph.nodes) {
+        if (!graphNode.embedding) {
+            throw new Error("node must be ready")
+        }
+
         const similarity = cosineSimilarity(node.embedding, graphNode.embedding);
 
         if (similarity >= threshold) {
@@ -222,6 +246,10 @@ export function containsNode(graph: Graph, node: Node, options?: { threshold: nu
 }
 
 export function findEdge(graph: Graph, source: Node, target: Node, edge: Edge, options?: { threshold: number; }): Edge | undefined {
+    if (!edge.embedding) {
+        throw new Error("edge must be ready")
+    }
+
     const { threshold = DEFAULT_THRESHOLD } = options ?? {};
 
     const candidateSource = findNode(graph, source, options);
@@ -239,6 +267,10 @@ export function findEdge(graph: Graph, source: Node, target: Node, edge: Edge, o
 
     const candidates: EdgeCandidate[] = [];
     for (const candidateEdge of candidateEdges) {
+        if (!candidateEdge.embedding) {
+            throw new Error("node must be ready")
+        }
+
         const similarity = cosineSimilarity(edge.embedding, candidateEdge.embedding);
 
         if (similarity >= threshold) {
@@ -266,29 +298,29 @@ export function containsEdge(graph: Graph, source: Node, target: Node, edge: Edg
 // returns the nodes and edges of b that are contained in a
 export function intersect(a: Graph, b: Graph): Graph {
     const nodes = b.nodes.filter((node) => containsNode(a, node));
-    
+
     // For edges, use similarity-based matching for endpoints
     const edges = b.edges.filter((edge) => {
         // Find the source and target nodes from b
         const sourceNode = b.nodes.find(n => n.id === edge.sourceId);
         const targetNode = b.nodes.find(n => n.id === edge.targetId);
-        
+
         if (!sourceNode || !targetNode) {
             return false;
         }
-        
+
         // Check if similar source and target nodes exist in a, and if the edge is contained
         const similarSource = findNode(a, sourceNode);
         const similarTarget = findNode(a, targetNode);
-        
+
         if (!similarSource || !similarTarget) {
             return false;
         }
-        
+
         // Check if the edge is contained in graph a using similarity-based matching
         return containsEdge(a, sourceNode, targetNode, edge);
     });
-    
+
     return {
         id: `graph_${Math.random().toString(36).substring(2, 15)}` as GraphId,
         nodes,
@@ -300,33 +332,33 @@ export function intersect(a: Graph, b: Graph): Graph {
 export function merge(a: Graph, b: Graph): Graph {
     // Start with all nodes from a
     const nodes = [...a.nodes];
-    
+
     // Add nodes from b that are not contained in a (using similarity-based matching)
     for (const nodeB of b.nodes) {
         if (!containsNode(a, nodeB)) {
             nodes.push(nodeB);
         }
     }
-    
+
     // Start with all edges from a
     const edges = [...a.edges];
-    
+
     // Add edges from b that are not contained in a (using similarity-based matching)
     for (const edgeB of b.edges) {
         // Find the source and target nodes from b
         const sourceNodeB = b.nodes.find(n => n.id === edgeB.sourceId);
         const targetNodeB = b.nodes.find(n => n.id === edgeB.targetId);
-        
+
         if (!sourceNodeB || !targetNodeB) {
             continue;
         }
-        
+
         // Check if the edge is not already contained in the original graph a using similarity-based matching
         if (!containsEdge(a, sourceNodeB, targetNodeB, edgeB)) {
             edges.push(edgeB);
         }
     }
-    
+
     return {
         id: `graph_${Math.random().toString(36).substring(2, 15)}` as GraphId,
         nodes,
