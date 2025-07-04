@@ -1,17 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { match, intersect, merge, incident } from './index.js'
 import { Graph, Node, Edge, NodeId, EdgeId } from './types.js'
-
-// Mock cosineSimilarity from 'ai' package
-vi.mock('ai', () => ({
-  cosineSimilarity: vi.fn((a: number[], b: number[]) => {
-    // Simple dot product similarity for testing
-    const dotProduct = a.reduce((sum, val, i) => sum + val * b[i]!, 0)
-    const magnitudeA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0))
-    const magnitudeB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0))
-    return dotProduct / (magnitudeA * magnitudeB)
-  })
-}))
 
 describe('Graph Matching Algorithms', () => {
   // Helper function to create test nodes

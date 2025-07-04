@@ -9,8 +9,8 @@
     "dist"
   ],
   "scripts": {
-    "test": "vitest",
-    "test:run": "vitest run",
+    "test": "vitest run",
+    "test:dev": "vitest",
     "test:coverage": "vitest run --coverage",
     "build": "tsc",
     "lerna:build": "lerna run build",

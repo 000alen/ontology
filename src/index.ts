@@ -1,7 +1,7 @@
-import { cosineSimilarity } from "ai";
 import { Edge, EdgeCandidate, EdgeId, Graph, GraphId, Node, NodeCandidate, NodeId } from "./types.js";
 import { cartesianProduct, take } from "./iter.js";
 import { log } from "./logging.js";
+import { cosineSimilarity } from "./math.js";
 
 export const DEFAULT_N = 10;
 export const DEFAULT_THRESHOLD = 0.5;
