@@ -1,5 +1,5 @@
 {
-  "name": "examples-simple",
+  "name": "ontology-examples-simple",
   "version": "1.0.0",
   "description": "Simple example demonstrating ontology node creation utilities",
   "main": "index.js",

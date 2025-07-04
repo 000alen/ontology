@@ -1,5 +1,5 @@
 {
-  "name": "examples-rag",
+  "name": "ontology-examples-refine",
   "version": "1.0.0",
   "description": "Simple example demonstrating ontology node creation utilities",
   "main": "index.js",

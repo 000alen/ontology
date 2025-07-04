@@ -1,5 +1,5 @@
 {
-  "name": "examples-inference",
+  "name": "ontology-examples-inference",
   "version": "1.0.0",
   "description": "Example demonstrating property inference through causal networks using LLM-powered propagation",
   "main": "index.js",

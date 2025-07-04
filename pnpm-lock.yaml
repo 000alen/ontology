@@ -43,7 +43,7 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@24.0.7)
 
-  examples/causal-analysis:
+  examples/causal:
     dependencies:
       '@ai-sdk/openai':
         specifier: ^1.0.67
@@ -74,7 +74,7 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
-  examples/inference-example:
+  examples/inference:
     dependencies:
       ontology:
         specifier: workspace:*

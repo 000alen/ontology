@@ -1,5 +1,5 @@
 {
-  "name": "examples-causal-analysis",
+  "name": "ontology-examples-causal",
   "version": "1.0.0",
   "description": "Environmental causal analysis example demonstrating the incident function for R→B reachability subgraphs",
   "main": "index.js",
