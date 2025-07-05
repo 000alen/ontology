@@ -1,6 +1,6 @@
 # Ontology Plot
 
-A graph visualization utility for ontology graphs that provides an interactive web interface for exploring and analyzing graph structures.
+A graph visualization utility for ontology graphs that provides an interactive React-based web interface for exploring and analyzing graph structures.
 
 ## Features
 
@@ -215,10 +215,28 @@ To build the package:
 pnpm build
 ```
 
-To run in development mode:
+To build only the server:
+
+```bash
+pnpm build:server
+```
+
+To build only the React frontend:
+
+```bash
+pnpm build:client
+```
+
+To run the React frontend in development mode:
 
 ```bash
 pnpm dev
+```
+
+To preview the built React app:
+
+```bash
+pnpm preview
 ```
 
 ## License

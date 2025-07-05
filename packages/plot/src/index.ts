@@ -31,8 +31,8 @@ export function createInstance(options: CreateInstanceOptions = {}): PlotInstanc
     }
   });
 
-  // Serve static files from public directory
-  app.use(express.static(join(__dirname, '../public')));
+  // Serve static files from React build directory
+  app.use(express.static(join(__dirname, 'public')));
 
   // API endpoint to get current graphs
   let graphs: Graph[] = [];

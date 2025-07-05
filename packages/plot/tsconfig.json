@@ -2,12 +2,18 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
+    "skipLibCheck": true
   },
   "include": [
-    "src/**/*"
+    "src/index.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "src/main.tsx",
+    "src/App.tsx",
+    "src/components",
+    "src/hooks",
+    "src/types.ts"
   ]
 } 
