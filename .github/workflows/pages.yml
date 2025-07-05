@@ -25,6 +25,9 @@ jobs:
       - name: Install deps
         run: pnpm install --frozen-lockfile
 
+      - name: Build
+        run: pnpm run lerna:build
+
       - name: Generate TypeDoc
         run: pnpm run docs
 
