@@ -9,6 +9,7 @@
     "dist"
   ],
   "scripts": {
+    "docs": "typedoc",
     "test": "vitest run",
     "test:dev": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -31,6 +32,7 @@
     "@vitest/coverage-v8": "^2.1.8",
     "lerna": "^8.2.2",
     "tsx": "^4.20.3",
+    "typedoc": "^0.28.7",
     "typescript": "^5.8.3",
     "vitest": "^2.1.8"
   },
