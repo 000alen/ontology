@@ -7,6 +7,143 @@ settings:
 importers:
 
   .:
+    devDependencies:
+      lerna:
+        specifier: ^8.2.2
+        version: 8.2.2(debug@4.4.1)(encoding@0.1.13)
+      tsx:
+        specifier: ^4.20.3
+        version: 4.20.3
+      typedoc:
+        specifier: ^0.28.7
+        version: 0.28.7(typescript@5.8.3)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  examples/causal:
+    dependencies:
+      '@ai-sdk/openai':
+        specifier: ^1.0.67
+        version: 1.3.22(zod@3.25.67)
+      ai:
+        specifier: ^4.0.46
+        version: 4.3.16(react@19.1.0)(zod@3.25.67)
+      ontology:
+        specifier: workspace:*
+        version: link:../../packages/ontology
+      ontology-plot:
+        specifier: workspace:*
+        version: link:../../packages/plot
+      zod:
+        specifier: ^3.25.0
+        version: 3.25.67
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.7
+        version: 24.0.7
+      dotenv:
+        specifier: ^17.0.0
+        version: 17.0.0
+      tsx:
+        specifier: ^4.6.2
+        version: 4.20.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  examples/inference:
+    dependencies:
+      ontology:
+        specifier: workspace:*
+        version: link:../../packages/ontology
+      ontology-inference:
+        specifier: workspace:*
+        version: link:../../packages/inference
+      ontology-plot:
+        specifier: workspace:*
+        version: link:../../packages/plot
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.7
+        version: 24.0.7
+      dotenv:
+        specifier: ^17.0.0
+        version: 17.0.0
+      tsx:
+        specifier: ^4.6.2
+        version: 4.20.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  examples/refine:
+    dependencies:
+      ontology:
+        specifier: workspace:*
+        version: link:../../packages/ontology
+      ontology-plot:
+        specifier: workspace:*
+        version: link:../../packages/plot
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.7
+        version: 24.0.7
+      dotenv:
+        specifier: ^17.0.0
+        version: 17.0.0
+      tsx:
+        specifier: ^4.6.2
+        version: 4.20.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  examples/simple:
+    dependencies:
+      ontology:
+        specifier: workspace:*
+        version: link:../../packages/ontology
+      ontology-plot:
+        specifier: workspace:*
+        version: link:../../packages/plot
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.7
+        version: 24.0.7
+      dotenv:
+        specifier: ^17.0.0
+        version: 17.0.0
+      tsx:
+        specifier: ^4.6.2
+        version: 4.20.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  packages/inference:
+    dependencies:
+      '@ai-sdk/openai':
+        specifier: ^1.3.22
+        version: 1.3.22(zod@3.25.74)
+      ai:
+        specifier: ^4.3.16
+        version: 4.3.16(react@19.1.0)(zod@3.25.74)
+      ontology:
+        specifier: workspace:*
+        version: link:../ontology
+      zod:
+        specifier: ^3.25.74
+        version: 3.25.74
+    devDependencies:
+      '@types/node':
+        specifier: ^20.10.5
+        version: 20.19.2
+      typescript:
+        specifier: ^5.3.3
+        version: 5.8.3
+
+  packages/ontology:
     dependencies:
       '@ai-sdk/openai':
         specifier: ^1.3.22
@@ -36,128 +173,12 @@ importers:
       tsx:
         specifier: ^4.20.3
         version: 4.20.3
-      typedoc:
-        specifier: ^0.28.7
-        version: 0.28.7(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@24.0.7)
-
-  examples/causal:
-    dependencies:
-      '@ai-sdk/openai':
-        specifier: ^1.0.67
-        version: 1.3.22(zod@3.25.67)
-      ai:
-        specifier: ^4.0.46
-        version: 4.3.16(react@19.1.0)(zod@3.25.67)
-      ontology:
-        specifier: workspace:*
-        version: link:../..
-      ontology-plot:
-        specifier: workspace:*
-        version: link:../../packages/plot
-      zod:
-        specifier: ^3.25.0
-        version: 3.25.67
-    devDependencies:
-      '@types/node':
-        specifier: ^24.0.7
-        version: 24.0.7
-      dotenv:
-        specifier: ^17.0.0
-        version: 17.0.0
-      tsx:
-        specifier: ^4.6.2
-        version: 4.20.3
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-
-  examples/inference:
-    dependencies:
-      ontology:
-        specifier: workspace:*
-        version: link:../..
-      ontology-inference:
-        specifier: workspace:*
-        version: link:../../packages/inference
-      ontology-plot:
-        specifier: workspace:*
-        version: link:../../packages/plot
-    devDependencies:
-      '@types/node':
-        specifier: ^24.0.7
-        version: 24.0.7
-      dotenv:
-        specifier: ^17.0.0
-        version: 17.0.0
-      tsx:
-        specifier: ^4.6.2
-        version: 4.20.3
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-
-  examples/refine:
-    dependencies:
-      ontology:
-        specifier: workspace:*
-        version: link:../..
-      ontology-plot:
-        specifier: workspace:*
-        version: link:../../packages/plot
-    devDependencies:
-      '@types/node':
-        specifier: ^24.0.7
-        version: 24.0.7
-      dotenv:
-        specifier: ^17.0.0
-        version: 17.0.0
-      tsx:
-        specifier: ^4.6.2
-        version: 4.20.3
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-
-  examples/simple:
-    dependencies:
-      ontology:
-        specifier: workspace:*
-        version: link:../..
-      ontology-plot:
-        specifier: workspace:*
-        version: link:../../packages/plot
-    devDependencies:
-      '@types/node':
-        specifier: ^24.0.7
-        version: 24.0.7
-      dotenv:
-        specifier: ^17.0.0
-        version: 17.0.0
-      tsx:
-        specifier: ^4.6.2
-        version: 4.20.3
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-
-  packages/inference:
-    dependencies:
-      ontology:
-        specifier: workspace:*
-        version: link:../..
-    devDependencies:
-      '@types/node':
-        specifier: ^20.10.5
-        version: 20.19.2
-      typescript:
-        specifier: ^5.3.3
-        version: 5.8.3
 
   packages/plot:
     dependencies:
@@ -166,7 +187,7 @@ importers:
         version: 4.21.2
       ontology:
         specifier: workspace:*
-        version: link:../..
+        version: link:../ontology
       open:
         specifier: ^10.0.3
         version: 10.1.2
@@ -3466,6 +3487,9 @@ packages:
   zod@3.25.67:
     resolution: {integrity: sha512-idA2YXwpCdqUSKRCACDE6ItZD9TZzy3OZMtpfLoh6oPR47lipysRrJfjzMqFxQ3uJuUPyUeWe1r9vLH33xO/Qw==}
 
+  zod@3.25.74:
+    resolution: {integrity: sha512-J8poo92VuhKjNknViHRAIuuN6li/EwFbAC8OedzI8uxpEPGiXHGQu9wemIAioIpqgfB4SySaJhdk0mH5Y4ICBg==}
+
 snapshots:
 
   '@ai-sdk/openai@1.3.22(zod@3.25.67)':
@@ -3474,12 +3498,25 @@ snapshots:
       '@ai-sdk/provider-utils': 2.2.8(zod@3.25.67)
       zod: 3.25.67
 
+  '@ai-sdk/openai@1.3.22(zod@3.25.74)':
+    dependencies:
+      '@ai-sdk/provider': 1.1.3
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.74)
+      zod: 3.25.74
+
   '@ai-sdk/provider-utils@2.2.8(zod@3.25.67)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
       nanoid: 3.3.11
       secure-json-parse: 2.7.0
       zod: 3.25.67
+
+  '@ai-sdk/provider-utils@2.2.8(zod@3.25.74)':
+    dependencies:
+      '@ai-sdk/provider': 1.1.3
+      nanoid: 3.3.11
+      secure-json-parse: 2.7.0
+      zod: 3.25.74
 
   '@ai-sdk/provider@1.1.3':
     dependencies:
@@ -3495,12 +3532,29 @@ snapshots:
     optionalDependencies:
       zod: 3.25.67
 
+  '@ai-sdk/react@1.2.12(react@19.1.0)(zod@3.25.74)':
+    dependencies:
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.74)
+      '@ai-sdk/ui-utils': 1.2.11(zod@3.25.74)
+      react: 19.1.0
+      swr: 2.3.3(react@19.1.0)
+      throttleit: 2.1.0
+    optionalDependencies:
+      zod: 3.25.74
+
   '@ai-sdk/ui-utils@1.2.11(zod@3.25.67)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
       '@ai-sdk/provider-utils': 2.2.8(zod@3.25.67)
       zod: 3.25.67
       zod-to-json-schema: 3.24.6(zod@3.25.67)
+
+  '@ai-sdk/ui-utils@1.2.11(zod@3.25.74)':
+    dependencies:
+      '@ai-sdk/provider': 1.1.3
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.74)
+      zod: 3.25.74
+      zod-to-json-schema: 3.24.6(zod@3.25.74)
 
   '@ampproject/remapping@2.3.0':
     dependencies:
@@ -3734,7 +3788,7 @@ snapshots:
       '@npmcli/arborist': 7.5.4
       '@npmcli/package-json': 5.2.0
       '@npmcli/run-script': 8.1.0
-      '@nx/devkit': 20.8.2(nx@20.8.2(debug@4.4.1))
+      '@nx/devkit': 20.8.2(nx@20.8.2)
       '@octokit/plugin-enterprise-rest': 6.0.1
       '@octokit/rest': 20.1.2
       aproba: 2.0.0
@@ -3959,7 +4013,7 @@ snapshots:
       - bluebird
       - supports-color
 
-  '@nx/devkit@20.8.2(nx@20.8.2(debug@4.4.1))':
+  '@nx/devkit@20.8.2(nx@20.8.2)':
     dependencies:
       ejs: 3.1.10
       enquirer: 2.3.6
@@ -4373,6 +4427,18 @@ snapshots:
       '@opentelemetry/api': 1.9.0
       jsondiffpatch: 0.6.0
       zod: 3.25.67
+    optionalDependencies:
+      react: 19.1.0
+
+  ai@4.3.16(react@19.1.0)(zod@3.25.74):
+    dependencies:
+      '@ai-sdk/provider': 1.1.3
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.74)
+      '@ai-sdk/react': 1.2.12(react@19.1.0)(zod@3.25.74)
+      '@ai-sdk/ui-utils': 1.2.11(zod@3.25.74)
+      '@opentelemetry/api': 1.9.0
+      jsondiffpatch: 0.6.0
+      zod: 3.25.74
     optionalDependencies:
       react: 19.1.0
 
@@ -5503,7 +5569,7 @@ snapshots:
       '@npmcli/arborist': 7.5.4
       '@npmcli/package-json': 5.2.0
       '@npmcli/run-script': 8.1.0
-      '@nx/devkit': 20.8.2(nx@20.8.2(debug@4.4.1))
+      '@nx/devkit': 20.8.2(nx@20.8.2)
       '@octokit/plugin-enterprise-rest': 6.0.1
       '@octokit/rest': 20.1.2
       aproba: 2.0.0
@@ -6967,4 +7033,10 @@ snapshots:
     dependencies:
       zod: 3.25.67
 
+  zod-to-json-schema@3.24.6(zod@3.25.74):
+    dependencies:
+      zod: 3.25.74
+
   zod@3.25.67: {}
+
+  zod@3.25.74: {}
