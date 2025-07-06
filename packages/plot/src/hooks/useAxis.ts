@@ -1,15 +1,12 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { trpc } from '../utils/trpc'
-import type { Node, Edge } from 'ontology'
 import type { AxisData } from '../types'
 
 export const useAxis = (axisId: string) => {
-  const [highlightedNode, setHighlightedNode] = useState<Node | null>(null)
-  const [highlightedEdge, setHighlightedEdge] = useState<Edge | null>(null)
   const [axis, setAxis] = useState<AxisData | null>(null)
 
   // Query to get a specific axis by ID
-  const { data: axisData, refetch: refetchAxis } = trpc.getAxis.useQuery(
+  const { data: axisData } = trpc.getAxis.useQuery(
     { axisId },
     {
       refetchOnWindowFocus: false,
@@ -17,21 +14,11 @@ export const useAxis = (axisId: string) => {
     }
   )
 
-  // Mutation to clear this specific axis
-  const clearAxisMutation = trpc.clearAxis.useMutation({
-    onSuccess: () => {
-      setAxis(prev => prev ? { ...prev, graphs: [] } : null)
-      setHighlightedNode(null)
-      setHighlightedEdge(null)
-      refetchAxis()
-    },
-  })
-
   // Subscribe to real-time updates
   trpc.onAxesUpdate.useSubscription(undefined, {
     onData: (update) => {
       console.log('Received update:', update)
-      
+
       switch (update.type) {
         case 'newAxis':
           if (Array.isArray(update.data)) {
@@ -45,33 +32,22 @@ export const useAxis = (axisId: string) => {
             }
           }
           break
-          
+
         case 'newGraph':
           // Only update if the graph is for our axis
           if (update.data.axisId === axisId) {
             setAxis(prev => prev ? { ...prev, graphs: [...prev.graphs, update.data.graph] } : null)
           }
           break
-          
+
         case 'clearAxes':
           setAxis(null)
-          setHighlightedNode(null)
-          setHighlightedEdge(null)
           break
-          
+
         case 'clearAxis':
           // Only update if our axis is being cleared
           if (update.data === axisId) {
             setAxis(prev => prev ? { ...prev, graphs: [] } : null)
-            setHighlightedNode(null)
-            setHighlightedEdge(null)
-          }
-          break
-          
-        case 'updateAxis':
-          // Only update if our axis is being updated
-          if (update.data.axisId === axisId) {
-            setAxis(prev => prev ? { ...prev, ...update.data.updates } : null)
           }
           break
       }
@@ -88,31 +64,5 @@ export const useAxis = (axisId: string) => {
     }
   }, [axisData])
 
-  // Load axis function
-  const loadAxis = useCallback(async () => {
-    try {
-      await refetchAxis()
-    } catch (error) {
-      console.error('Failed to load axis:', error)
-    }
-  }, [refetchAxis])
-
-  // Clear this axis function
-  const clearAxis = useCallback(async () => {
-    try {
-      await clearAxisMutation.mutateAsync({ axisId })
-    } catch (error) {
-      console.error('Failed to clear axis:', error)
-    }
-  }, [clearAxisMutation, axisId])
-
-  return {
-    axis,
-    loadAxis,
-    clearAxis,
-    highlightedNode,
-    highlightedEdge,
-    setHighlightedNode,
-    setHighlightedEdge,
-  }
+  return { axis }
 } 

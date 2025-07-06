@@ -16,9 +16,7 @@ const BORDER_COLORS = [
 ];
 
 export const Visualizer: React.FC<VisualizerProps> = ({
-  axes,
-  onNodeClick,
-  onEdgeClick,
+  axes
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const cyRef = useRef<cytoscape.Core | null>(null)
@@ -27,7 +25,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
   const createCytoscapeNode = (node: Node, axis: AxisData, graphIndex: number, graphId: string) => {
     const colorIndex = graphIndex % AXIS_COLORS.length;
     const nodeId = `${axis.id}-${graphId}-${node.id}`;
-    
+
     return {
       data: {
         id: nodeId,
@@ -35,7 +33,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
         originalId: node.id,
         axisId: axis.id,
         graphId: graphId,
-        axisTitle: axis.title,
+        axisTitle: axis.id,
         description: node.description,
         properties: node.properties,
         axis: axis,
@@ -43,7 +41,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
       },
       classes: `axis-${axis.id} graph-${graphId}`,
       style: {
-        'background-color': axis.color || AXIS_COLORS[colorIndex],
+        'background-color': AXIS_COLORS[colorIndex],
         'border-color': BORDER_COLORS[colorIndex],
         'border-width': 2,
         'label': node.name,
@@ -63,7 +61,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
     const edgeId = `${axis.id}-${graphId}-${edge.id}`;
     const sourceId = `${axis.id}-${graphId}-${edge.sourceId}`;
     const targetId = `${axis.id}-${graphId}-${edge.targetId}`;
-    
+
     return {
       data: {
         id: edgeId,
@@ -73,7 +71,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
         originalId: edge.id,
         axisId: axis.id,
         graphId: graphId,
-        axisTitle: axis.title,
+        axisTitle: axis.id,
         description: edge.description,
         sourceOriginalId: edge.sourceId,
         targetOriginalId: edge.targetId,
@@ -105,25 +103,20 @@ export const Visualizer: React.FC<VisualizerProps> = ({
     const graphMap = new Map<string, { axis: AxisData; graph: any }>();
 
     axes.forEach((axis, axisIndex) => {
-      if (axis.visible) {
-        axisMap.set(axis.id, axis);
-        
-        axis.graphs.forEach((graph, graphIndex) => {
-          if (graph.plotOptions?.visible !== false) {
-            graphMap.set(graph.id, { axis, graph });
-            
-            // Add nodes for this graph
-            const nodes = graph.nodes.map(node => createCytoscapeNode(node, axis, axisIndex, graph.id));
-            allElements.push(...nodes);
-            
-            // Add edges for this graph
-            const edges = graph.edges.map(edge => createCytoscapeEdge(edge, axis, axisIndex, graph.id));
-            allElements.push(...edges);
-          }
-        });
-      }
-    });
+      axisMap.set(axis.id, axis);
 
+      axis.graphs.forEach((graph) => {
+        graphMap.set(graph.id, { axis, graph });
+
+        // Add nodes for this graph
+        const nodes = graph.nodes.map(node => createCytoscapeNode(node, axis, axisIndex, graph.id));
+        allElements.push(...nodes);
+
+        // Add edges for this graph
+        const edges = graph.edges.map(edge => createCytoscapeEdge(edge, axis, axisIndex, graph.id));
+        allElements.push(...edges);
+      });
+    });
     // Destroy existing cytoscape instance
     if (cyRef.current) {
       cyRef.current.destroy();
@@ -133,7 +126,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
     cyRef.current = cytoscape({
       container: containerRef.current,
       elements: allElements,
-      
+
       style: [
         {
           selector: 'node',
@@ -232,17 +225,11 @@ export const Visualizer: React.FC<VisualizerProps> = ({
     cyRef.current.on('tap', 'node', (evt) => {
       const node = evt.target;
       const data = node.data();
-      if (data.originalNode && onNodeClick) {
-        onNodeClick(data.originalNode, data.axisId, data.graphId);
-      }
     });
 
     cyRef.current.on('tap', 'edge', (evt) => {
       const edge = evt.target;
       const data = edge.data();
-      if (data.originalEdge && onEdgeClick) {
-        onEdgeClick(data.originalEdge, data.axisId, data.graphId);
-      }
     });
 
     // Handle reset view event
@@ -262,7 +249,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
         cyRef.current = null;
       }
     };
-  }, [axes, onNodeClick, onEdgeClick]);
+  }, [axes]);
 
   if (axes.length === 0) {
     return <NoGraphs />

@@ -9,7 +9,6 @@ const wsClient = createWSClient({
   url: `ws://localhost:${window.location.port || 3000}`,
 });
 
-
 // Create tRPC React hooks
 export const trpc = createTRPCReact<AppRouter>();
 

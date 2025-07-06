@@ -4,12 +4,10 @@ import type { GalleryProps } from '../types'
 
 export const Gallery: React.FC<GalleryProps> = ({
   axes,
-  onSelectAxis,
 }) => {
   const navigate = useNavigate()
 
   const handleSelectAxis = (index: number) => {
-    onSelectAxis(index)
     navigate(`/graph/${axes[index].id}`)
   }
 
@@ -25,11 +23,6 @@ export const Gallery: React.FC<GalleryProps> = ({
 
   return (
     <div className="gallery">
-      <div className="gallery-header">
-        <h2>Axis Gallery</h2>
-        <p>Click on any axis to view its visualization</p>
-      </div>
-
       <div className="gallery-grid">
         {axes.map((axis, index) => {
           const totalNodes = axis.graphs.reduce((sum, graph) => sum + graph.nodes.length, 0);
@@ -42,7 +35,7 @@ export const Gallery: React.FC<GalleryProps> = ({
               onClick={() => handleSelectAxis(index)}
             >
               <div className="gallery-card-header">
-                <h3>{axis.title}</h3>
+                <h3>{axis.id}</h3>
                 <span className="gallery-card-stats">
                   {axis.graphs.length} graphs • {totalNodes} nodes • {totalEdges} edges
                 </span>

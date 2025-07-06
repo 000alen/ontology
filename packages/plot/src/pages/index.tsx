@@ -6,8 +6,5 @@ import { Gallery } from "../components/Gallery";
 export default function Page() {
     const { axes } = useAxes()
 
-    return <Gallery
-        axes={axes}
-        onSelectAxis={() => { }}
-    />
+    return <Gallery axes={axes} />
 }

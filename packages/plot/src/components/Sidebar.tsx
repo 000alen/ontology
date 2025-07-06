@@ -3,8 +3,6 @@ import type { SidebarProps } from '../types'
 
 export const Sidebar: React.FC<SidebarProps> = ({
   axes,
-  highlightedNode,
-  highlightedEdge,
 }) => {
   if (axes.length === 0) {
     return (
@@ -39,9 +37,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {axes.map((axis, axisIndex) => (
         <div key={axis.id} className="axis-section">
           <h4>
-            Axis: {axis.title}
+            Axis: {axis.id}
             <span className="axis-color" style={{ 
-              backgroundColor: axis.color,
+              // backgroundColor: axis.color,
               width: '12px',
               height: '12px',
               borderRadius: '50%',
@@ -51,7 +49,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }}></span>
           </h4>
           <p><strong>Graphs:</strong> {axis.graphs.length}</p>
-          <p><strong>Visible:</strong> {axis.visible ? 'Yes' : 'No'}</p>
           
           {axis.graphs.map((graph, graphIndex) => (
             <div key={`${axis.id}-${graph.id}`} className="graph-section">
@@ -63,11 +60,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {graph.nodes.map(node => (
                 <div
                   key={`${axis.id}-${graph.id}-${node.id}`}
-                  className={`node-info ${highlightedNode?.id === node.id ? 'highlighted' : ''}`}
+                  className={`node-info`}
                 >
                   <h6>{node.name}</h6>
                   <p><strong>ID:</strong> {node.id}</p>
-                  <p><strong>Axis:</strong> {axis.title}</p>
+                  <p><strong>Axis:</strong> {axis.id}</p>
                   <p><strong>Graph:</strong> {graph.id}</p>
                   {node.description && (
                     <p><strong>Description:</strong> {node.description}</p>
@@ -82,11 +79,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {graph.edges.map(edge => (
                 <div
                   key={`${axis.id}-${graph.id}-${edge.id}`}
-                  className={`edge-info ${highlightedEdge?.id === edge.id ? 'highlighted' : ''}`}
+                  className={`edge-info`}
                 >
                   <h6>{edge.name}</h6>
                   <p><strong>ID:</strong> {edge.id}</p>
-                  <p><strong>Axis:</strong> {axis.title}</p>
+                  <p><strong>Axis:</strong> {axis.id}</p>
                   <p><strong>Graph:</strong> {graph.id}</p>
                   <p><strong>From:</strong> {edge.sourceId} → <strong>To:</strong> {edge.targetId}</p>
                   {edge.description && (

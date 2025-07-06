@@ -1,28 +1,11 @@
 import type { Graph, Node, Edge } from 'ontology'
 
-export interface PlotOptions {
-  color?: string;
-  visible?: boolean;
-}
-
 export interface AxisData {
   id: string;
-  title: string;
-  color: string;
-  visible: boolean;
-  position: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
   graphs: GraphWithId[];
 }
 
-export interface GraphWithId extends Graph {
-  id: string;
-  plotOptions?: PlotOptions;
-}
+export interface GraphWithId extends Graph { }
 
 export interface ConnectionStatus {
   connected: boolean
@@ -38,23 +21,14 @@ export interface HeaderProps {
 
 export interface VisualizerProps {
   axes: AxisData[]
-  onNodeClick: (node: Node, axisId: string, graphId: string) => void
-  onEdgeClick: (edge: Edge, axisId: string, graphId: string) => void
 }
 
 export interface VisualizationProps {
   axes: AxisData[]
-  highlightedNode: Node | null
-  highlightedEdge: Edge | null
-  setHighlightedNode: (node: Node | null) => void
-  setHighlightedEdge: (edge: Edge | null) => void
-  onClearAxes: () => void
 }
 
 export interface SidebarProps {
   axes: AxisData[]
-  highlightedNode: Node | null
-  highlightedEdge: Edge | null
 }
 
 export interface NoGraphsProps {
@@ -63,7 +37,5 @@ export interface NoGraphsProps {
 
 export interface GalleryProps {
   axes: AxisData[]
-  onSelectAxis: (index: number) => void
 }
 
- 

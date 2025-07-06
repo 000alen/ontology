@@ -8,29 +8,14 @@ export default function Page() {
     const { id } = useParams()
 
     if (!id) {
-        return <div>No axis ID provided</div>
+        throw new Error("No axis ID provided")
     }
 
-    const {
-        axis,
-        loadAxis,
-        clearAxis,
-        highlightedNode,
-        highlightedEdge,
-        setHighlightedNode,
-        setHighlightedEdge,
-    } = useAxis(id)
+    const { axis } = useAxis(id)
 
     if (!axis) {
         return <div>Axis not found</div>
     }
 
-    return <Visualization
-        axes={[axis]}
-        highlightedNode={highlightedNode}
-        highlightedEdge={highlightedEdge}
-        setHighlightedNode={setHighlightedNode}
-        setHighlightedEdge={setHighlightedEdge}
-        onClearAxes={clearAxis}
-    />
+    return <Visualization axes={[axis]} />
 }

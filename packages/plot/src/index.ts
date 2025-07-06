@@ -13,19 +13,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export interface PlotInstance {
-  plot(graph: Graph, options?: PlotOptions): void;
-  createAxis(options?: AxisOptions): Axis;
+  plot(graph: Graph): void;
+  createAxis(): Axis;
   getAxes(): Axis[];
   clear(): void;
   close(): Promise<void>;
 }
 
 export interface Axis {
-  plot(graph: Graph, options?: PlotOptions): void;
+  plot(graph: Graph): void;
   clear(): void;
-  setTitle(title: string): void;
-  setColor(color: string): void;
-  setVisible(visible: boolean): void;
   getId(): string;
 }
 
@@ -34,29 +31,12 @@ export interface CreateInstanceOptions {
   autoOpen?: boolean;
 }
 
-export interface AxisOptions {
-  title?: string;
-  color?: string;
-  visible?: boolean;
-  position?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-}
-
-export interface PlotOptions {
-  color?: string;
-  visible?: boolean;
-}
-
 export function createInstance(options: CreateInstanceOptions = {}): PlotInstance {
   const { port = 3000, autoOpen = true } = options;
 
   const app = express();
   const server = createServer(app);
-  
+
   // Create WebSocket server for tRPC subscriptions
   const wss = new WebSocketServer({ server });
 
@@ -98,42 +78,24 @@ export function createInstance(options: CreateInstanceOptions = {}): PlotInstanc
   });
 
   // Create axis function - directly manipulate the router state
-  const createAxis = (options: AxisOptions = {}): Axis => {
+  const createAxis = (): Axis => {
     const axisId = `axis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const axisData = {
       id: axisId,
-      title: options.title || `Axis ${axes.length + 1}`,
-      color: options.color || '#007bff',
-      visible: options.visible !== false,
-      position: options.position || { x: 0, y: 0, width: 1, height: 1 },
       graphs: []
     };
 
     axes.push(axisData);
-    console.log(`🎯 Created axis: ${axisData.title}`);
 
     return {
-      plot(graph: Graph, plotOptions: PlotOptions = {}): void {
-        console.log(`📊 Plotting graph: ${graph.id} on axis: ${axisData.title} (${graph.nodes.length} nodes, ${graph.edges.length} edges)`);
-        const graphWithOptions = { ...graph, plotOptions };
+      plot(graph: Graph): void {
+        console.log(`📊 Plotting graph: ${graph.id} on axis: ${axisId} (${graph.nodes.length} nodes, ${graph.edges.length} edges)`);
+        const graphWithOptions = { ...graph };
         (axisData as any).graphs.push(graphWithOptions);
       },
 
       clear(): void {
-        console.log(`🗑️ Clearing axis: ${axisData.title}`);
         axisData.graphs = [];
-      },
-
-      setTitle(title: string): void {
-        axisData.title = title;
-      },
-
-      setColor(color: string): void {
-        axisData.color = color;
-      },
-
-      setVisible(visible: boolean): void {
-        axisData.visible = visible;
       },
 
       getId(): string {
@@ -143,18 +105,18 @@ export function createInstance(options: CreateInstanceOptions = {}): PlotInstanc
   };
 
   return {
-    plot(graph: Graph, options?: PlotOptions): void {
+    plot(graph: Graph): void {
       console.log(`📊 Plotting graph: ${graph.id} (${graph.nodes.length} nodes, ${graph.edges.length} edges)`);
-      
+
       if (axes.length === 0) {
         // Create a default axis if none exists
         const defaultAxis = createAxis();
-        defaultAxis.plot(graph, options);
+        defaultAxis.plot(graph);
       } else {
         // Use the first axis
         const firstAxisData = axes[0];
         if (firstAxisData) {
-          const graphWithOptions = { ...graph, plotOptions: options || {} };
+          const graphWithOptions = { ...graph };
           firstAxisData.graphs.push(graphWithOptions);
         }
       }
@@ -164,21 +126,12 @@ export function createInstance(options: CreateInstanceOptions = {}): PlotInstanc
 
     getAxes(): Axis[] {
       return axes.map(axisData => ({
-        plot(graph: Graph, plotOptions: PlotOptions = {}): void {
-          const graphWithOptions = { ...graph, plotOptions };
+        plot(graph: Graph): void {
+          const graphWithOptions = { ...graph };
           axisData.graphs.push(graphWithOptions);
         },
         clear(): void {
           axisData.graphs = [];
-        },
-        setTitle(title: string): void {
-          axisData.title = title;
-        },
-        setColor(color: string): void {
-          axisData.color = color;
-        },
-        setVisible(visible: boolean): void {
-          axisData.visible = visible;
         },
         getId(): string {
           return axisData.id;
@@ -206,17 +159,15 @@ export function createInstance(options: CreateInstanceOptions = {}): PlotInstanc
 let defaultInstance: PlotInstance | null = null;
 
 // Convenience function to create instance and plot a single graph
-export function plot(graph: Graph, options?: CreateInstanceOptions | PlotOptions): PlotInstance {
+export function plot(graph: Graph, options?: CreateInstanceOptions): PlotInstance {
   if (!defaultInstance) {
     const isCreateOptions = options && 'port' in options;
     const createOptions = isCreateOptions ? options as CreateInstanceOptions : {};
-    const plotOptions = isCreateOptions ? undefined : options as PlotOptions;
-    
+
     defaultInstance = createInstance(createOptions);
-    defaultInstance.plot(graph, plotOptions);
+    defaultInstance.plot(graph);
   } else {
-    const plotOptions = options && !('port' in options) ? options as PlotOptions : undefined;
-    defaultInstance.plot(graph, plotOptions);
+    defaultInstance.plot(graph);
   }
   return defaultInstance;
 } 

@@ -9,45 +9,19 @@ const t = initTRPC.create();
 // Create a global event emitter for real-time updates
 const eventEmitter = new EventEmitter();
 
-// Define input schemas
-const PlotOptionsSchema = z.object({
-    color: z.string().optional(),
-    visible: z.boolean().optional(),
-});
-
-const AxisOptionsSchema = z.object({
-    title: z.string().optional(),
-    color: z.string().optional(),
-    visible: z.boolean().optional(),
-    position: z.object({
-        x: z.number(),
-        y: z.number(),
-        width: z.number(),
-        height: z.number(),
-    }).optional(),
-});
-
 const GraphSchema = z.object({
     id: z.string(),
     nodes: z.array(z.any()),
     edges: z.array(z.any()),
 }) as z.ZodType<Graph>;
 
-// Global state for axes (in a real app, this would be in a database)
-export let axes: (AxisData & { graphs: (Graph & { plotOptions?: any })[] })[] = [];
-
 export interface AxisData {
     id: string;
-    title: string;
-    color: string;
-    visible: boolean;
-    position: {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    };
+    graphs: Graph[];
 }
+
+// Global state for axes (in a real app, this would be in a database)
+export let axes: AxisData[] = [];
 
 export const appRouter = t.router({
     // Get all axes
@@ -69,20 +43,15 @@ export const appRouter = t.router({
 
     // Create a new axis
     createAxis: t.procedure
-        .input(AxisOptionsSchema)
-        .mutation(({ input }) => {
+        .mutation(({ }) => {
             const axisId = `axis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const axisData: AxisData & { graphs: (Graph & { plotOptions?: any })[] } = {
+            const axisData: AxisData = {
                 id: axisId,
-                title: input.title || `Axis ${axes.length + 1}`,
-                color: input.color || '#007bff',
-                visible: input.visible !== false,
-                position: input.position || { x: 0, y: 0, width: 1, height: 1 },
                 graphs: []
             };
 
             axes.push(axisData);
-            console.log(`🎯 Created axis: ${axisData.title}`);
+            console.log(`🎯 Created axis: ${axisData.id}`);
 
             // Emit event for real-time updates
             eventEmitter.emit('newAxis', axisData);
@@ -95,7 +64,6 @@ export const appRouter = t.router({
         .input(z.object({
             axisId: z.string(),
             graph: GraphSchema,
-            options: PlotOptionsSchema.optional(),
         }))
         .mutation(({ input }) => {
             const axis = axes.find(a => a.id === input.axisId);
@@ -103,22 +71,20 @@ export const appRouter = t.router({
                 throw new Error(`Axis with id ${input.axisId} not found`);
             }
 
-            const graphWithOptions = { ...input.graph, plotOptions: input.options || {} };
-            axis.graphs.push(graphWithOptions);
+            axis.graphs.push(input.graph);
 
-            console.log(`📊 Plotted graph: ${input.graph.id} on axis: ${axis.title} (${input.graph.nodes.length} nodes, ${input.graph.edges.length} edges)`);
+            console.log(`📊 Plotted graph: ${input.graph.id} on axis: ${axis.id} (${input.graph.nodes.length} nodes, ${input.graph.edges.length} edges)`);
 
             // Emit event for real-time updates
-            eventEmitter.emit('newGraph', { axisId: input.axisId, graph: graphWithOptions });
+            eventEmitter.emit('newGraph', { axisId: input.axisId, graph: input.graph });
 
-            return { axis, graph: graphWithOptions };
+            return { axis, graph: input.graph };
         }),
 
     // Plot a graph on the first available axis (or create a default one)
     plotGraphAuto: t.procedure
         .input(z.object({
             graph: GraphSchema,
-            options: PlotOptionsSchema.optional(),
         }))
         .mutation(({ input }) => {
             let targetAxis = axes[0];
@@ -128,28 +94,23 @@ export const appRouter = t.router({
                 const axisId = `axis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                 targetAxis = {
                     id: axisId,
-                    title: 'Default Axis',
-                    color: '#007bff',
-                    visible: true,
-                    position: { x: 0, y: 0, width: 1, height: 1 },
                     graphs: []
                 };
                 axes.push(targetAxis);
-                console.log(`🎯 Created default axis: ${targetAxis.title}`);
+                console.log(`🎯 Created default axis: ${targetAxis.id}`);
 
                 // Emit event for new axis
                 eventEmitter.emit('newAxis', targetAxis);
             }
 
-            const graphWithOptions = { ...input.graph, plotOptions: input.options || {} };
-            targetAxis.graphs.push(graphWithOptions);
+            targetAxis.graphs.push(input.graph);
 
             console.log(`📊 Plotted graph: ${input.graph.id} (${input.graph.nodes.length} nodes, ${input.graph.edges.length} edges)`);
 
             // Emit event for new graph
-            eventEmitter.emit('newGraph', { axisId: targetAxis.id, graph: graphWithOptions });
+            eventEmitter.emit('newGraph', { axisId: targetAxis.id, graph: input.graph });
 
-            return { axis: targetAxis, graph: graphWithOptions };
+            return { axis: targetAxis, graph: input.graph };
         }),
 
     // Clear all axes
@@ -174,37 +135,12 @@ export const appRouter = t.router({
             }
 
             axis.graphs = [];
-            console.log(`🗑️ Cleared axis: ${axis.title}`);
+            console.log(`🗑️ Cleared axis: ${axis.id}`);
 
             // Emit event for real-time updates
             eventEmitter.emit('clearAxis', input.axisId);
 
-            return { success: true, message: `Axis ${axis.title} cleared` };
-        }),
-
-    // Update axis properties
-    updateAxis: t.procedure
-        .input(z.object({
-            axisId: z.string(),
-            updates: z.object({
-                title: z.string().optional(),
-                color: z.string().optional(),
-                visible: z.boolean().optional(),
-            }),
-        }))
-        .mutation(({ input }) => {
-            const axis = axes.find(a => a.id === input.axisId);
-            if (!axis) {
-                throw new Error(`Axis with id ${input.axisId} not found`);
-            }
-
-            Object.assign(axis, input.updates);
-            console.log(`✏️ Updated axis: ${axis.title}`);
-
-            // Emit event for real-time updates
-            eventEmitter.emit('updateAxis', { axisId: input.axisId, updates: input.updates });
-
-            return axis;
+            return { success: true, message: `Axis ${axis.id} cleared` };
         }),
 
     // Subscription for real-time axes updates
@@ -215,7 +151,7 @@ export const appRouter = t.router({
 
             // Create a queue to handle events
             const eventQueue: Array<{
-                type: 'newAxis' | 'newGraph' | 'clearAxes' | 'clearAxis' | 'updateAxis';
+                type: 'newAxis' | 'newGraph' | 'clearAxes' | 'clearAxis';
                 data: any;
             }> = [];
 
@@ -250,19 +186,11 @@ export const appRouter = t.router({
                 resolveNext?.();
             };
 
-            // Listen for update axis events
-            const onUpdateAxis = (data: { axisId: string; updates: any }) => {
-                if (!isActive) return;
-                eventQueue.push({ type: 'updateAxis', data });
-                resolveNext?.();
-            };
-
             // Register event listeners
             eventEmitter.on('newAxis', onNewAxis);
             eventEmitter.on('newGraph', onNewGraph);
             eventEmitter.on('clearAxes', onClearAxes);
             eventEmitter.on('clearAxis', onClearAxis);
-            eventEmitter.on('updateAxis', onUpdateAxis);
 
             try {
                 // Process events from the queue
@@ -285,7 +213,6 @@ export const appRouter = t.router({
                 eventEmitter.off('newGraph', onNewGraph);
                 eventEmitter.off('clearAxes', onClearAxes);
                 eventEmitter.off('clearAxis', onClearAxis);
-                eventEmitter.off('updateAxis', onUpdateAxis);
             }
         }),
 });
