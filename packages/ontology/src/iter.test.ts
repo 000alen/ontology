@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { cartesianProduct, take } from './iter.js'
+import { Vector } from './types.js'
 
 describe('Iterator Utilities', () => {
   describe('cartesianProduct', () => {
@@ -96,7 +97,7 @@ describe('Iterator Utilities', () => {
     })
 
     it('should work with empty iterable', () => {
-      const input: number[] = []
+      const input: Vector[] = []
       const result = Array.from(take(input, 5))
       
       expect(result).toEqual([])

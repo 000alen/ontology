@@ -366,7 +366,7 @@ interface Node {
   name: string;
   description?: string;
   properties?: Property[];
-  embedding: number[];
+  embedding: Vector;
 }
 
 interface Edge {
@@ -376,7 +376,7 @@ interface Edge {
   sourceId: string;
   targetId: string;
   properties?: Property[];
-  embedding: number[];
+  embedding: Vector;
 }
 ```
 

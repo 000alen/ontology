@@ -1,3 +1,5 @@
+import { Vector } from "./types.js";
+
 /**
  * Calculates the dot product of two vectors.
  * 
@@ -14,7 +16,7 @@
  * const result = dot([1, 2, 3], [4, 5, 6]); // returns 32
  * ```
  */
-export function dot(a: number[], b: number[]): number {
+export function dot(a: Vector, b: Vector): number {
     if (a.length !== b.length) {
         throw new Error("Vectors must have the same length");
     }
@@ -46,7 +48,7 @@ export function dot(a: number[], b: number[]): number {
  * const mag3d = magnitude([1, 2, 2]); // returns 3
  * ```
  */
-export function magnitude(a: number[]): number {
+export function magnitude(a: Vector): number {
     return Math.sqrt(dot(a, a));
 }
 
@@ -74,7 +76,7 @@ export function magnitude(a: number[]): number {
  * const sim3 = cosineSimilarity([1, 0], [-1, 0]); // returns -1 (opposite direction)
  * ```
  */
-export function cosineSimilarity(a: number[], b: number[]): number {
+export function cosineSimilarity(a: Vector, b: Vector): number {
     if (a.length !== b.length) {
         throw new Error("Vectors must have the same length");
     }
@@ -120,7 +122,7 @@ export function cosineSimilarity(a: number[], b: number[]): number {
  * // returns [1, 0, -1]
  * ```
  */
-export function cosineSimilarityOneToMany(query: number[], targets: number[][]): number[] {
+export function cosineSimilarityOneToMany(query: Vector, targets: Vector[]): Vector {
     if (targets.length === 0) {
         return [];
     }
@@ -141,7 +143,7 @@ export function cosineSimilarityOneToMany(query: number[], targets: number[][]):
         return new Array(targets.length).fill(0);
     }
 
-    const similarities: number[] = new Array(targets.length);
+    const similarities: Vector = new Array(targets.length);
 
     for (let i = 0; i < targets.length; i++) {
         const target = targets[i]!;
@@ -191,7 +193,7 @@ export function cosineSimilarityOneToMany(query: number[], targets: number[][]):
  * //  [0.707, 0.707, 1]]
  * ```
  */
-export function cosineSimilarityMatrix(vectors: number[][]): number[][] {
+export function cosineSimilarityMatrix(vectors: Vector[]): Vector[] {
     const n = vectors.length;
     
     if (n === 0) {
@@ -214,7 +216,7 @@ export function cosineSimilarityMatrix(vectors: number[][]): number[][] {
     const magnitudes = vectors.map(v => magnitude(v));
     
     // Initialize similarity matrix
-    const matrix: number[][] = Array(n).fill(0).map(() => Array(n).fill(0));
+    const matrix: Vector[] = Array(n).fill(0).map(() => Array(n).fill(0));
 
     // Fill the matrix (only compute upper triangle + diagonal)
     for (let i = 0; i < n; i++) {
@@ -266,8 +268,8 @@ export function cosineSimilarityMatrix(vectors: number[][]): number[][] {
  * ```
  */
 export function findTopSimilar(
-    query: number[], 
-    targets: number[][], 
+    query: Vector, 
+    targets: Vector[], 
     k: number,
     threshold: number = 0
 ): Array<{ index: number; similarity: number }> {

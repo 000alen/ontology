@@ -7,6 +7,7 @@ import {
   cosineSimilarityMatrix, 
   findTopSimilar 
 } from './math.js'
+import { Vector } from './types.js'
 
 describe('Math Functions', () => {
   describe('dot', () => {
@@ -136,12 +137,12 @@ describe('Math Functions', () => {
 
     it('should handle empty targets array', () => {
       const query = [1, 0]
-      const targets: number[][] = []
+      const targets: Vector[] = []
       expect(cosineSimilarityOneToMany(query, targets)).toEqual([])
     })
 
     it('should handle empty query vector', () => {
-      const query: number[] = []
+      const query: Vector = []
       const targets = [[1, 2], [3, 4]]
       expect(cosineSimilarityOneToMany(query, targets)).toEqual([0, 0])
     })
@@ -300,7 +301,7 @@ describe('Math Functions', () => {
 
     it('should handle empty targets', () => {
       const query = [1, 0]
-      const targets: number[][] = []
+      const targets: Vector[] = []
       const result = findTopSimilar(query, targets, 2)
       expect(result).toHaveLength(0)
     })

@@ -1,4 +1,4 @@
-import { Edge, EdgeCandidate, EdgeId, Graph, GraphId, Node, NodeCandidate, NodeId } from "./types.js";
+import { Edge, EdgeCandidate, EdgeId, Graph, GraphId, Node, NodeCandidate, NodeId, Vector } from "./types.js";
 import { cartesianProduct, take } from "./iter.js";
 import { log } from "./logging.js";
 import { cosineSimilarity, cosineSimilarityOneToMany } from "./math.js";
@@ -46,7 +46,7 @@ export function* similarNodes(graph: Graph, query: Graph, options?: { n: number;
         }
 
         // Extract embeddings and validate all graph nodes are ready
-        const graphNodeEmbeddings: number[][] = [];
+        const graphNodeEmbeddings: Vector[] = [];
         const graphNodeIds: NodeId[] = [];
 
         for (const graphNode of graph.nodes) {
@@ -227,7 +227,7 @@ export function findNode(graph: Graph, node: Node, options?: { threshold: number
     const { threshold = DEFAULT_THRESHOLD } = options ?? {};
 
     // Extract embeddings and validate all graph nodes are ready
-    const graphNodeEmbeddings: number[][] = [];
+    const graphNodeEmbeddings: Vector[] = [];
     const graphNodes: Node[] = [];
 
     for (const graphNode of graph.nodes) {
