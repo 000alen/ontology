@@ -1,7 +1,27 @@
 import type { Graph, Node, Edge } from 'ontology'
 
+export interface PlotOptions {
+  color?: string;
+  visible?: boolean;
+}
+
+export interface AxisData {
+  id: string;
+  title: string;
+  color: string;
+  visible: boolean;
+  position: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  graphs: GraphWithId[];
+}
+
 export interface GraphWithId extends Graph {
-  id: string
+  id: string;
+  plotOptions?: PlotOptions;
 }
 
 export interface ConnectionStatus {
@@ -10,27 +30,40 @@ export interface ConnectionStatus {
 }
 
 export interface HeaderProps {
-  graphs: GraphWithId[]
-  currentGraph: GraphWithId | null
-  onSelectGraph: (index: number) => void
+  axes: AxisData[]
   onRefresh: () => void
   connectionStatus: 'connected' | 'disconnected'
+  onClearAxes: () => void
 }
 
 export interface VisualizerProps {
-  graph: GraphWithId | null
-  onNodeClick: (node: Node) => void
-  onEdgeClick: (edge: Edge) => void
+  axes: AxisData[]
+  onNodeClick: (node: Node, axisId: string, graphId: string) => void
+  onEdgeClick: (edge: Edge, axisId: string, graphId: string) => void
+}
+
+export interface VisualizationProps {
+  axes: AxisData[]
+  highlightedNode: Node | null
+  highlightedEdge: Edge | null
+  setHighlightedNode: (node: Node | null) => void
+  setHighlightedEdge: (edge: Edge | null) => void
+  onClearAxes: () => void
 }
 
 export interface SidebarProps {
-  graph: GraphWithId | null
+  axes: AxisData[]
   highlightedNode: Node | null
   highlightedEdge: Edge | null
 }
 
 export interface NoGraphsProps {
   message?: string
+}
+
+export interface GalleryProps {
+  axes: AxisData[]
+  onSelectAxis: (index: number) => void
 }
 
 export interface VisNetworkNode {
@@ -51,6 +84,7 @@ export interface VisNetworkNode {
   }
   shape: string
   size: number
+  group?: string
 }
 
 export interface VisNetworkEdge {
@@ -73,4 +107,5 @@ export interface VisNetworkEdge {
     size: number
     color: string
   }
+  group?: string
 } 
