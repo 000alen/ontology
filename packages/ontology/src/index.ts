@@ -48,7 +48,7 @@ export function* similarNodes(graph: Graph, query: Graph, options?: { n: number;
         // Extract embeddings and validate all graph nodes are ready
         const graphNodeEmbeddings: number[][] = [];
         const graphNodeIds: NodeId[] = [];
-        
+
         for (const graphNode of graph.nodes) {
             if (!graphNode.embedding) {
                 throw new Error("graph node must be ready")
@@ -59,15 +59,15 @@ export function* similarNodes(graph: Graph, query: Graph, options?: { n: number;
 
         // Use efficient batch cosine similarity computation
         const similarities = cosineSimilarityOneToMany(queryNode.embedding, graphNodeEmbeddings);
-        
+
         const candidates_i: NodeCandidate[] = [];
         for (let i = 0; i < similarities.length; i++) {
             const similarity = similarities[i]!;
             if (similarity >= threshold) {
-                candidates_i.push({ 
-                    referenceId: queryNode.id, 
-                    candidateId: graphNodeIds[i]!, 
-                    similarity 
+                candidates_i.push({
+                    referenceId: queryNode.id,
+                    candidateId: graphNodeIds[i]!,
+                    similarity
                 });
             }
         }
@@ -229,7 +229,7 @@ export function findNode(graph: Graph, node: Node, options?: { threshold: number
     // Extract embeddings and validate all graph nodes are ready
     const graphNodeEmbeddings: number[][] = [];
     const graphNodes: Node[] = [];
-    
+
     for (const graphNode of graph.nodes) {
         if (!graphNode.embedding) {
             throw new Error("node must be ready")
@@ -240,15 +240,15 @@ export function findNode(graph: Graph, node: Node, options?: { threshold: number
 
     // Use efficient batch cosine similarity computation
     const similarities = cosineSimilarityOneToMany(node.embedding, graphNodeEmbeddings);
-    
+
     const candidates: NodeCandidate[] = [];
     for (let i = 0; i < similarities.length; i++) {
         const similarity = similarities[i]!;
         if (similarity >= threshold) {
-            candidates.push({ 
-                referenceId: node.id, 
-                candidateId: graphNodes[i]!.id, 
-                similarity 
+            candidates.push({
+                referenceId: node.id,
+                candidateId: graphNodes[i]!.id,
+                similarity
             });
         }
     }
@@ -353,8 +353,22 @@ export function intersect(a: Graph, b: Graph): Graph {
     };
 }
 
+// remove the ready promises from nodes, edges, and properties
+export function clone(graph: Graph): Graph {
+    const clone = {
+        id: graph.id,
+        nodes: graph.nodes.map(({ ready, ...node }) => ({ ...node, properties: node.properties.map(({ ready, ...property }) => ({ ...property })) })),
+        edges: graph.edges.map(({ ready, ...edge }) => ({ ...edge, properties: edge.properties.map(({ ready, ...property }) => ({ ...property })) })),
+    };
+
+    return structuredClone(clone);
+}
+
 // merges b onto a
 export function merge(a: Graph, b: Graph): Graph {
+    a = clone(a);
+    b = clone(b);
+
     // Start with all nodes from a
     const nodes = [...a.nodes];
 
@@ -452,13 +466,13 @@ export function incident(graph: Graph, sources: NodeId[], targets: NodeId[]): Gr
     function dfs(graph: Graph, startNodes: NodeId[]): Set<NodeId> {
         const visited = new Set<NodeId>();
         const stack: NodeId[] = [...startNodes];
-        
+
         while (stack.length > 0) {
             const current = stack.pop()!;
             if (visited.has(current)) continue;
-            
+
             visited.add(current);
-            
+
             // Find all edges from current node
             for (const edge of graph.edges) {
                 if (edge.sourceId === current && !visited.has(edge.targetId)) {
@@ -466,10 +480,10 @@ export function incident(graph: Graph, sources: NodeId[], targets: NodeId[]): Gr
                 }
             }
         }
-        
+
         return visited;
     }
-    
+
     // Helper function to reverse the graph
     function reverseGraph(graph: Graph): Graph {
         return {
@@ -483,14 +497,14 @@ export function incident(graph: Graph, sources: NodeId[], targets: NodeId[]): Gr
             }))
         };
     }
-    
+
     // Phase 1: Forward DFS from sources (R) → set F of vertices reachable from R
     const F = dfs(graph, sources);
-    
+
     // Phase 2: Forward DFS from targets (B) in reversed graph → set B' of vertices that can reach B
     const reversedGraph = reverseGraph(graph);
     const Bprime = dfs(reversedGraph, targets);
-    
+
     // Phase 3: Intersection I = F ∩ B' gives vertices lying on at least one R→B path
     const I = new Set<NodeId>();
     for (const nodeId of F) {
@@ -498,7 +512,7 @@ export function incident(graph: Graph, sources: NodeId[], targets: NodeId[]): Gr
             I.add(nodeId);
         }
     }
-    
+
     // If no intersection, return empty graph (no R→B path exists)
     if (I.size === 0) {
         return {
@@ -507,21 +521,21 @@ export function incident(graph: Graph, sources: NodeId[], targets: NodeId[]): Gr
             edges: []
         };
     }
-    
+
     // Phase 4: Induce subgraph H = G[I]
     const inducedNodes = graph.nodes.filter(node => I.has(node.id));
-    const inducedEdges = graph.edges.filter(edge => 
+    const inducedEdges = graph.edges.filter(edge =>
         I.has(edge.sourceId) && I.has(edge.targetId)
     );
-    
+
     // Phase 5: Delete edges (u,v) with v ∈ R or u ∈ B (enforces boundary degrees)
     const sourcesSet = new Set(sources);
     const targetsSet = new Set(targets);
-    
-    const finalEdges = inducedEdges.filter(edge => 
+
+    const finalEdges = inducedEdges.filter(edge =>
         !sourcesSet.has(edge.targetId) && !targetsSet.has(edge.sourceId)
     );
-    
+
     return {
         id: `graph_${Math.random().toString(36).substring(2, 15)}` as GraphId,
         nodes: inducedNodes,

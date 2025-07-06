@@ -27,8 +27,9 @@ export function createProperty(id: string, data: Omit<Property, "id" | "embeddin
             .then((result) => result.embedding)
     }
 
+    const randomId = Math.random().toString(36).substring(2, 8);
     const property = {
-        id: `property_${id}` satisfies PropertyId,
+        id: `property_${id}_${randomId}` satisfies PropertyId,
         ...data,
         embedding: null
     } satisfies Property;
@@ -55,8 +56,9 @@ export function createNode(id: string, data: Omit<Node, "id" | "embedding" | "me
             .then((result) => result.embedding)
     }
 
+    const randomId = Math.random().toString(36).substring(2, 8);
     const node = {
-        id: `node_${id}` satisfies NodeId,
+        id: `node_${id}_${randomId}` satisfies NodeId,
         ...data,
         meta: {},
         embedding: null,
@@ -85,8 +87,9 @@ export function createEdge(id: string, data: Omit<Edge, "id" | "embedding">, con
             .then((result) => result.embedding)
     }
 
+    const randomId = Math.random().toString(36).substring(2, 8);
     const edge = {
-        id: `edge_${id}` satisfies EdgeId,
+        id: `edge_${id}_${randomId}` satisfies EdgeId,
         ...data,
         embedding: null
     } satisfies Edge;
@@ -112,8 +115,9 @@ export function createGraph(id: string, data: Omit<Graph, "id" | "embedding">, c
             })
     }
 
+    const randomId = Math.random().toString(36).substring(2, 8);
     const graph = {
-        id: `graph_${id}` satisfies GraphId,
+        id: `graph_${id}_${randomId}` satisfies GraphId,
         ...data
     } satisfies Graph;
 

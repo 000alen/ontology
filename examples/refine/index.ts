@@ -104,6 +104,9 @@ async function main() {
 
     const refined = merge(schemaGraph, o);
 
+
+    // plot(schemaGraph)
+
     plot(o, schemaGraph);
     // plot(refined);
 
