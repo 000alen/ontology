@@ -3,16 +3,15 @@ import type { AxisData } from '../types'
 import { transformAxesToCytoscapeElements } from '../utils/dataTransform'
 
 interface UseVisualizationDataProps {
-  axes: AxisData[]
+  axis: AxisData
 }
 
-export function useVisualizationData({ axes }: UseVisualizationDataProps) {
+export function useVisualizationData({ axis }: UseVisualizationDataProps) {
   const elements = useMemo(() => {
-    if (axes.length === 0) return []
-    return transformAxesToCytoscapeElements(axes)
-  }, [axes])
+    return transformAxesToCytoscapeElements(axis)
+  }, [axis])
 
-  const hasData = axes.length > 0
+  const hasData = axis.graphs.length > 0
   const nodeCount = elements.filter(el => el.data && !el.data.source).length
   const edgeCount = elements.filter(el => el.data && el.data.source).length
 

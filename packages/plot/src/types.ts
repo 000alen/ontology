@@ -20,15 +20,15 @@ export interface HeaderProps {
 }
 
 export interface VisualizerProps {
-  axes: AxisData[]
+  axis: AxisData
 }
 
 export interface VisualizationProps {
-  axes: AxisData[]
+  axis: AxisData
 }
 
 export interface SidebarProps {
-  axes: AxisData[]
+  axis: AxisData
 }
 
 export interface NoGraphsProps {

@@ -17,5 +17,5 @@ export default function Page() {
         return <div>Axis not found</div>
     }
 
-    return <Visualization axes={[axis]} />
+    return <Visualization axis={axis} />
 }

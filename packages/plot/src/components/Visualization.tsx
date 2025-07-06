@@ -4,13 +4,13 @@ import { Sidebar } from './Sidebar'
 import type { VisualizationProps } from '../types'
 
 export const Visualization: React.FC<VisualizationProps> = ({
-  axes,
+  axis,
 }) => {
   return (
     <div className="container">
-      <Visualizer axes={axes} />
+      <Visualizer axis={axis} />
 
-      <Sidebar axes={axes} />
+      <Sidebar axis={axis} />
     </div>
   )
 } 

@@ -4,9 +4,9 @@ import { NoGraphs } from './NoGraphs'
 import { useVisualizationData } from '../hooks/useVisualizationData'
 import { useCytoscape } from '../hooks/useCytoscape'
 
-export const Visualizer: React.FC<VisualizerProps> = ({ axes }) => {
+export const Visualizer: React.FC<VisualizerProps> = ({ axis }) => {
   // Transform data for visualization
-  const { elements, hasData } = useVisualizationData({ axes })
+  const { elements, hasData } = useVisualizationData({ axis })
   
   // Cytoscape management
   const { containerRef } = useCytoscape({ elements })

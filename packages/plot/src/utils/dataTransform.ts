@@ -44,12 +44,12 @@ export interface CytoscapeEdge {
 export function createCytoscapeNode(
   node: Node,
   axis: AxisData,
-  graphIndex: number,
+  // graphIndex: number,
   graphId: string
 ): CytoscapeNode {
-  const colorIndex = graphIndex % AXIS_COLORS.length
+  const colorIndex = 0 // graphIndex % AXIS_COLORS.length
   const nodeId = `${axis.id}-${graphId}-${node.id}`
-  
+
   const parentId = node.meta?.parentId?.[0]
   const parentNodeId = parentId ? `parent-${parentId}` : undefined
 
@@ -119,10 +119,10 @@ export function createParentNode(parentId: string): CytoscapeNode {
 export function createCytoscapeEdge(
   edge: Edge,
   axis: AxisData,
-  graphIndex: number,
+  // graphIndex: number,
   graphId: string
 ): CytoscapeEdge {
-  const colorIndex = graphIndex % BORDER_COLORS.length
+  const colorIndex = 0 // graphIndex % BORDER_COLORS.length
   const edgeId = `${axis.id}-${graphId}-${edge.id}`
   const sourceId = `${axis.id}-${graphId}-${edge.sourceId}`
   const targetId = `${axis.id}-${graphId}-${edge.targetId}`
@@ -158,24 +158,22 @@ export function createCytoscapeEdge(
   }
 }
 
-export function transformAxesToCytoscapeElements(axes: AxisData[]): any[] {
+export function transformAxesToCytoscapeElements(axis: AxisData): any[] {
   const allElements: any[] = []
   const parentNodes = new Map<string, any>()
 
   // First pass: collect all unique parent IDs across all axes and graphs
-  axes.forEach((axis) => {
-    axis.graphs.forEach((graph) => {
-      graph.nodes.forEach(node => {
-        if (node.meta?.parentId) {
-          node.meta.parentId.forEach(parentId => {
-            const parentKey = `parent-${parentId}`
-            if (!parentNodes.has(parentKey)) {
-              const parentNode = createParentNode(parentId)
-              parentNodes.set(parentKey, parentNode)
-            }
-          })
-        }
-      })
+  axis.graphs.forEach((graph) => {
+    graph.nodes.forEach(node => {
+      if (node.meta?.parentId) {
+        node.meta.parentId.forEach(parentId => {
+          const parentKey = `parent-${parentId}`
+          if (!parentNodes.has(parentKey)) {
+            const parentNode = createParentNode(parentId)
+            parentNodes.set(parentKey, parentNode)
+          }
+        })
+      }
     })
   })
 
@@ -185,20 +183,18 @@ export function transformAxesToCytoscapeElements(axes: AxisData[]): any[] {
   })
 
   // Second pass: add child nodes and edges
-  axes.forEach((axis, axisIndex) => {
-    axis.graphs.forEach((graph) => {
-      // Add child nodes for this graph
-      const nodes = graph.nodes.map(node => 
-        createCytoscapeNode(node, axis, axisIndex, graph.id)
-      )
-      allElements.push(...nodes)
+  axis.graphs.forEach((graph) => {
+    // Add child nodes for this graph
+    const nodes = graph.nodes.map(node =>
+      createCytoscapeNode(node, axis, graph.id)
+    )
+    allElements.push(...nodes)
 
-      // Add edges for this graph
-      const edges = graph.edges.map(edge => 
-        createCytoscapeEdge(edge, axis, axisIndex, graph.id)
-      )
-      allElements.push(...edges)
-    })
+    // Add edges for this graph
+    const edges = graph.edges.map(edge =>
+      createCytoscapeEdge(edge, axis, graph.id)
+    )
+    allElements.push(...edges)
   })
 
   return allElements
