@@ -8,7 +8,7 @@ function getPropertyDescription(property: Omit<Property, "id" | "embedding">): s
     return `${property.name}: ${property.description}`
 }
 
-function getNodeDescription(node: Omit<Node, "id" | "embedding">): string {
+function getNodeDescription(node: Omit<Node, "id" | "embedding" | "meta">): string {
     return `${node.name}: ${node.description}\n${node.properties.map(getPropertyDescription).join("\n")}`
 }
 
@@ -38,7 +38,7 @@ export function createProperty(id: string, data: Omit<Property, "id" | "embeddin
     return property;
 }
 
-export function createNode(id: string, data: Omit<Node, "id" | "embedding">, context?: Context): Node {
+export function createNode(id: string, data: Omit<Node, "id" | "embedding" | "meta">, context?: Context): Node {
     context ??= defaultContext;
 
     const ready = async function (this: Node) {
@@ -58,7 +58,8 @@ export function createNode(id: string, data: Omit<Node, "id" | "embedding">, con
     const node = {
         id: `node_${id}` satisfies NodeId,
         ...data,
-        embedding: null
+        meta: {},
+        embedding: null,
     } satisfies Node;
 
     node.ready = ready.call(node);

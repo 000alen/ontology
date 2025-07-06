@@ -22,6 +22,8 @@ async function getOntology() {
         properties: []
     });
 
+    userEntity.meta.parentId = "_user";
+
     const membershipEntity = createNode("membership", {
         name: "Membership",
         description: "A membership of an organization",
@@ -56,7 +58,6 @@ async function getOntology() {
 
 async function main() {
     const o = await getOntology();
-    plot(o);
 
     const nameProperty = createProperty("name", {
         name: "name",
@@ -104,11 +105,12 @@ async function main() {
 
     await schemaGraph.ready;
 
-    plot(schemaGraph);
-
     const refined = merge(schemaGraph, o);
 
-    plot(refined);
+    userEntity.meta.parentId = "_user";
+    plot(o);
+    plot(schemaGraph);
+    // plot(refined);
 
     console.log(refined);
 }

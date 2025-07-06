@@ -34,18 +34,6 @@ export const useAxes = () => {
               : axis
           ))
           break
-
-        case 'clearAxes':
-          setAxes([])
-          break
-
-        case 'clearAxis':
-          setAxes(prev => prev.map(axis =>
-            axis.id === update.data
-              ? { ...axis, graphs: [] }
-              : axis
-          ))
-          break
       }
     },
     onError: (error) => {

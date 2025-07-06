@@ -149,6 +149,10 @@ export type Node = AsyncObject<{
     embedding: Embedding | null;
     /** Array of properties associated with this node */
     properties: Property[];
+
+    meta: Partial<{
+        parentId: string
+    }> & Record<string, any>
 }>;
 
 /**

@@ -26,6 +26,10 @@ export const Visualizer: React.FC<VisualizerProps> = ({
     const colorIndex = graphIndex % AXIS_COLORS.length;
     const nodeId = `${axis.id}-${graphId}-${node.id}`;
 
+    // Check if this node has a parent - use shared parent ID
+    const parentId = node.meta?.parentId;
+    const parentNodeId = parentId ? `parent-${parentId}` : undefined;
+
     return {
       data: {
         id: nodeId,
@@ -37,7 +41,8 @@ export const Visualizer: React.FC<VisualizerProps> = ({
         description: node.description,
         properties: node.properties,
         axis: axis,
-        originalNode: node
+        originalNode: node,
+        ...(parentNodeId && { parent: parentNodeId })
       },
       classes: `axis-${axis.id} graph-${graphId}`,
       style: {
@@ -51,6 +56,35 @@ export const Visualizer: React.FC<VisualizerProps> = ({
         'width': 40,
         'height': 40,
         'shape': 'ellipse'
+      }
+    }
+  }
+
+  // Create shared parent node for hypergraph structure
+  const createParentNode = (parentId: string) => {
+    const nodeId = `parent-${parentId}`;
+
+    return {
+      data: {
+        id: nodeId,
+        label: parentId,
+        originalId: parentId,
+        description: `Parent node: ${parentId}`,
+        properties: [],
+        isParent: true
+      },
+      classes: `parent-node`,
+      style: {
+        'background-color': '#f5f5f5',
+        'border-color': '#bdbdbd',
+        'border-width': 2,
+        'label': parentId,
+        'font-size': '14px',
+        'text-valign': 'top',
+        'text-halign': 'center',
+        'shape': 'round-rectangle',
+        'corner-radius': '10px',
+        'padding': '20px'
       }
     }
   }
@@ -101,14 +135,36 @@ export const Visualizer: React.FC<VisualizerProps> = ({
     const allElements: any[] = [];
     const axisMap = new Map<string, AxisData>();
     const graphMap = new Map<string, { axis: AxisData; graph: any }>();
+    const parentNodes = new Map<string, any>(); // Track parent nodes to avoid duplicates
 
+    // First pass: collect all unique parent IDs across all axes and graphs
     axes.forEach((axis, axisIndex) => {
       axisMap.set(axis.id, axis);
 
       axis.graphs.forEach((graph) => {
         graphMap.set(graph.id, { axis, graph });
 
-        // Add nodes for this graph
+        graph.nodes.forEach(node => {
+          if (node.meta?.parentId) {
+            const parentKey = `parent-${node.meta.parentId}`;
+            if (!parentNodes.has(parentKey)) {
+              const parentNode = createParentNode(node.meta.parentId);
+              parentNodes.set(parentKey, parentNode);
+            }
+          }
+        });
+      });
+    });
+
+    // Add all parent nodes to elements first
+    parentNodes.forEach(parentNode => {
+      allElements.push(parentNode);
+    });
+
+    // Second pass: add child nodes and edges
+    axes.forEach((axis, axisIndex) => {
+      axis.graphs.forEach((graph) => {
+        // Add child nodes for this graph
         const nodes = graph.nodes.map(node => createCytoscapeNode(node, axis, axisIndex, graph.id));
         allElements.push(...nodes);
 
@@ -117,6 +173,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
         allElements.push(...edges);
       });
     });
+
     // Destroy existing cytoscape instance
     if (cyRef.current) {
       cyRef.current.destroy();
@@ -143,6 +200,24 @@ export const Visualizer: React.FC<VisualizerProps> = ({
             'shape': 'ellipse',
             'color': '#333',
             'text-outline-width': 2,
+            'text-outline-color': '#fff'
+          }
+        },
+        {
+          selector: ':parent',
+          style: {
+            'text-valign': 'top',
+            'text-halign': 'center',
+            'shape': 'round-rectangle',
+            'corner-radius': '10px',
+            'padding': '20px',
+            'background-color': '#f5f5f5',
+            'border-color': '#bdbdbd',
+            'border-width': 2,
+            'font-size': '14px',
+            'font-weight': 'bold',
+            'color': '#666',
+            'text-outline-width': 1,
             'text-outline-color': '#fff'
           }
         },

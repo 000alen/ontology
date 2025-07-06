@@ -39,17 +39,6 @@ export const useAxis = (axisId: string) => {
             setAxis(prev => prev ? { ...prev, graphs: [...prev.graphs, update.data.graph] } : null)
           }
           break
-
-        case 'clearAxes':
-          setAxis(null)
-          break
-
-        case 'clearAxis':
-          // Only update if our axis is being cleared
-          if (update.data === axisId) {
-            setAxis(prev => prev ? { ...prev, graphs: [] } : null)
-          }
-          break
       }
     },
     onError: (error) => {

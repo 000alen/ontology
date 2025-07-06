@@ -9,7 +9,8 @@ describe('Graph Matching Algorithms', () => {
     name: `Node ${id}`,
     description: `Node ${id}`,
     embedding,
-    properties: []
+    properties: [],
+    meta: {}
   })
 
   // Helper function to create test edges
