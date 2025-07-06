@@ -8,6 +8,16 @@
   "files": [
     "dist"
   ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./math": {
+      "types": "./dist/math.d.ts",
+      "import": "./dist/math.js"
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "test:dev": "vitest",

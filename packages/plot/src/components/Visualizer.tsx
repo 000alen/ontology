@@ -26,8 +26,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({
     const colorIndex = graphIndex % AXIS_COLORS.length;
     const nodeId = `${axis.id}-${graphId}-${node.id}`;
 
-    // Check if this node has a parent - use shared parent ID
-    const parentId = node.meta?.parentId;
+    const parentId = node.meta?.parentId?.[0];
     const parentNodeId = parentId ? `parent-${parentId}` : undefined;
 
     return {
@@ -146,11 +145,13 @@ export const Visualizer: React.FC<VisualizerProps> = ({
 
         graph.nodes.forEach(node => {
           if (node.meta?.parentId) {
-            const parentKey = `parent-${node.meta.parentId}`;
-            if (!parentNodes.has(parentKey)) {
-              const parentNode = createParentNode(node.meta.parentId);
-              parentNodes.set(parentKey, parentNode);
-            }
+            node.meta.parentId.forEach(parentId => {
+              const parentKey = `parent-${parentId}`;
+              if (!parentNodes.has(parentKey)) {
+                const parentNode = createParentNode(parentId);
+                parentNodes.set(parentKey, parentNode);
+              }
+            });
           }
         });
       });

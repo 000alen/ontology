@@ -1,7 +1,7 @@
 import { Edge, EdgeCandidate, EdgeId, Graph, GraphId, Node, NodeCandidate, NodeId } from "./types.js";
 import { cartesianProduct, take } from "./iter.js";
 import { log } from "./logging.js";
-import { cosineSimilarity } from "./math.js";
+import { cosineSimilarity, cosineSimilarityOneToMany } from "./math.js";
 
 export const DEFAULT_N = 10;
 export const DEFAULT_THRESHOLD = 0.5;
@@ -45,20 +45,31 @@ export function* similarNodes(graph: Graph, query: Graph, options?: { n: number;
             throw new Error("query node must be ready")
         }
 
-        const candidates_i: NodeCandidate[] = [];
-
+        // Extract embeddings and validate all graph nodes are ready
+        const graphNodeEmbeddings: number[][] = [];
+        const graphNodeIds: NodeId[] = [];
+        
         for (const graphNode of graph.nodes) {
             if (!graphNode.embedding) {
                 throw new Error("graph node must be ready")
             }
+            graphNodeEmbeddings.push(graphNode.embedding);
+            graphNodeIds.push(graphNode.id);
+        }
 
-            const similarity = cosineSimilarity(queryNode.embedding, graphNode.embedding);
-
-            if (similarity < threshold) {
-                continue;
+        // Use efficient batch cosine similarity computation
+        const similarities = cosineSimilarityOneToMany(queryNode.embedding, graphNodeEmbeddings);
+        
+        const candidates_i: NodeCandidate[] = [];
+        for (let i = 0; i < similarities.length; i++) {
+            const similarity = similarities[i]!;
+            if (similarity >= threshold) {
+                candidates_i.push({ 
+                    referenceId: queryNode.id, 
+                    candidateId: graphNodeIds[i]!, 
+                    similarity 
+                });
             }
-
-            candidates_i.push({ referenceId: queryNode.id, candidateId: graphNode.id, similarity });
         }
 
         if (candidates_i.length === 0) {
@@ -215,16 +226,30 @@ export function findNode(graph: Graph, node: Node, options?: { threshold: number
 
     const { threshold = DEFAULT_THRESHOLD } = options ?? {};
 
-    const candidates: NodeCandidate[] = [];
+    // Extract embeddings and validate all graph nodes are ready
+    const graphNodeEmbeddings: number[][] = [];
+    const graphNodes: Node[] = [];
+    
     for (const graphNode of graph.nodes) {
         if (!graphNode.embedding) {
             throw new Error("node must be ready")
         }
+        graphNodeEmbeddings.push(graphNode.embedding);
+        graphNodes.push(graphNode);
+    }
 
-        const similarity = cosineSimilarity(node.embedding, graphNode.embedding);
-
+    // Use efficient batch cosine similarity computation
+    const similarities = cosineSimilarityOneToMany(node.embedding, graphNodeEmbeddings);
+    
+    const candidates: NodeCandidate[] = [];
+    for (let i = 0; i < similarities.length; i++) {
+        const similarity = similarities[i]!;
         if (similarity >= threshold) {
-            candidates.push({ referenceId: node.id, candidateId: graphNode.id, similarity });
+            candidates.push({ 
+                referenceId: node.id, 
+                candidateId: graphNodes[i]!.id, 
+                similarity 
+            });
         }
     }
 

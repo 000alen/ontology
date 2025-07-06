@@ -151,7 +151,7 @@ export type Node = AsyncObject<{
     properties: Property[];
 
     meta: Partial<{
-        parentId: string
+        parentId: string[];
     }> & Record<string, any>
 }>;
 
