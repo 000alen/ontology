@@ -4,7 +4,7 @@ A graph visualization utility for ontology graphs that provides an interactive R
 
 ## Features
 
-- 🎨 **Interactive Visualization**: Drag, zoom, and explore graphs with vis.js
+- 🎨 **Interactive Visualization**: Drag, zoom, and explore graphs with cytoscape.js
 - 🔄 **Real-time Updates**: Graphs appear instantly as they're plotted
 - 📊 **Axis-based Organization**: Create multiple axes to organize different types of graphs
 - 🎨 **Visual Differentiation**: Each axis has distinct colors and titles

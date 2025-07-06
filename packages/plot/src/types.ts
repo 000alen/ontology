@@ -66,46 +66,4 @@ export interface GalleryProps {
   onSelectAxis: (index: number) => void
 }
 
-export interface VisNetworkNode {
-  id: string
-  label: string
-  title: string
-  color: {
-    background: string
-    border: string
-    highlight: {
-      background: string
-      border: string
-    }
-  }
-  font: {
-    size: number
-    color: string
-  }
-  shape: string
-  size: number
-  group?: string
-}
-
-export interface VisNetworkEdge {
-  id: string
-  from: string
-  to: string
-  label: string
-  title: string
-  color: {
-    color: string
-    highlight: string
-  }
-  arrows: {
-    to: {
-      enabled: boolean
-      scaleFactor: number
-    }
-  }
-  font: {
-    size: number
-    color: string
-  }
-  group?: string
-} 
+ 
