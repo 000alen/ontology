@@ -1,4 +1,4 @@
-import type { Graph, Node, Edge } from 'ontology'
+import type { Graph } from 'ontology'
 
 export interface AxisData {
   id: string;

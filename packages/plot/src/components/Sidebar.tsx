@@ -13,7 +13,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     )
   }
 
-  const totalAxes = 1;
   const totalGraphs = axis.graphs.length;
   const totalNodes = axis.graphs.reduce((sum, graph) =>
     sum + axis.graphs.reduce((graphSum, graph) => graphSum + graph.nodes.length, 0), 0
@@ -28,7 +27,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <div className="axis-summary">
         <h4>Overview</h4>
-        <p><strong>Total Axes:</strong> {totalAxes}</p>
         <p><strong>Total Graphs:</strong> {totalGraphs}</p>
         <p><strong>Total Nodes:</strong> {totalNodes}</p>
         <p><strong>Total Edges:</strong> {totalEdges}</p>
