@@ -16,13 +16,11 @@ export interface PlotInstance {
   plot(graph: Graph): void;
   createAxis(): Axis;
   getAxes(): Axis[];
-  clear(): void;
   close(): Promise<void>;
 }
 
 export interface Axis {
   plot(graph: Graph): void;
-  clear(): void;
   getId(): string;
 }
 
@@ -94,10 +92,6 @@ export function createInstance(options: CreateInstanceOptions = {}): PlotInstanc
         (axisData as any).graphs.push(graphWithOptions);
       },
 
-      clear(): void {
-        axisData.graphs = [];
-      },
-
       getId(): string {
         return axisId;
       }
@@ -130,18 +124,10 @@ export function createInstance(options: CreateInstanceOptions = {}): PlotInstanc
           const graphWithOptions = { ...graph };
           axisData.graphs.push(graphWithOptions);
         },
-        clear(): void {
-          axisData.graphs = [];
-        },
         getId(): string {
           return axisData.id;
         }
       }));
-    },
-
-    clear(): void {
-      console.log('🗑️ Clearing all axes');
-      axes.length = 0; // Clear the array
     },
 
     async close(): Promise<void> {

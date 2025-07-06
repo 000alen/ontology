@@ -1,4 +1,4 @@
-import { initTRPC } from '@trpc/server';
+import { initTRPC, TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { EventEmitter } from 'events';
 import type { Graph } from 'ontology';
@@ -13,7 +13,7 @@ const GraphSchema = z.object({
     id: z.string(),
     nodes: z.array(z.any()),
     edges: z.array(z.any()),
-}) as z.ZodType<Graph>;
+});
 
 export interface AxisData {
     id: string;
@@ -36,7 +36,10 @@ export const appRouter = t.router({
         .query(({ input }) => {
             const axis = axes.find(a => a.id === input.axisId);
             if (!axis) {
-                throw new Error(`Axis with id ${input.axisId} not found`);
+                throw new TRPCError({
+                    code: 'NOT_FOUND',
+                    message: `Axis with id ${input.axisId} not found`
+                });
             }
             return axis;
         }),
@@ -68,10 +71,13 @@ export const appRouter = t.router({
         .mutation(({ input }) => {
             const axis = axes.find(a => a.id === input.axisId);
             if (!axis) {
-                throw new Error(`Axis with id ${input.axisId} not found`);
+                throw new TRPCError({
+                    code: 'NOT_FOUND',
+                    message: `Axis with id ${input.axisId} not found`
+                });
             }
 
-            axis.graphs.push(input.graph);
+            axis.graphs.push(input.graph as Graph);
 
             console.log(`📊 Plotted graph: ${input.graph.id} on axis: ${axis.id} (${input.graph.nodes.length} nodes, ${input.graph.edges.length} edges)`);
 
@@ -103,7 +109,7 @@ export const appRouter = t.router({
                 eventEmitter.emit('newAxis', targetAxis);
             }
 
-            targetAxis.graphs.push(input.graph);
+            targetAxis.graphs.push(input.graph as Graph);
 
             console.log(`📊 Plotted graph: ${input.graph.id} (${input.graph.nodes.length} nodes, ${input.graph.edges.length} edges)`);
 
@@ -113,35 +119,6 @@ export const appRouter = t.router({
             return { axis: targetAxis, graph: input.graph };
         }),
 
-    // Clear all axes
-    clearAxes: t.procedure
-        .mutation(() => {
-            axes = [];
-            console.log('🗑️ Cleared all axes');
-
-            // Emit event for real-time updates
-            eventEmitter.emit('clearAxes');
-
-            return { success: true, message: 'All axes cleared' };
-        }),
-
-    // Clear a specific axis
-    clearAxis: t.procedure
-        .input(z.object({ axisId: z.string() }))
-        .mutation(({ input }) => {
-            const axis = axes.find(a => a.id === input.axisId);
-            if (!axis) {
-                throw new Error(`Axis with id ${input.axisId} not found`);
-            }
-
-            axis.graphs = [];
-            console.log(`🗑️ Cleared axis: ${axis.id}`);
-
-            // Emit event for real-time updates
-            eventEmitter.emit('clearAxis', input.axisId);
-
-            return { success: true, message: `Axis ${axis.id} cleared` };
-        }),
 
     // Subscription for real-time axes updates
     onAxesUpdate: t.procedure
@@ -151,7 +128,7 @@ export const appRouter = t.router({
 
             // Create a queue to handle events
             const eventQueue: Array<{
-                type: 'newAxis' | 'newGraph' | 'clearAxes' | 'clearAxis';
+                type: 'newAxis' | 'newGraph';
                 data: any;
             }> = [];
 
@@ -172,25 +149,9 @@ export const appRouter = t.router({
                 resolveNext?.();
             };
 
-            // Listen for clear axes events
-            const onClearAxes = () => {
-                if (!isActive) return;
-                eventQueue.push({ type: 'clearAxes', data: null });
-                resolveNext?.();
-            };
-
-            // Listen for clear axis events
-            const onClearAxis = (axisId: string) => {
-                if (!isActive) return;
-                eventQueue.push({ type: 'clearAxis', data: axisId });
-                resolveNext?.();
-            };
-
             // Register event listeners
             eventEmitter.on('newAxis', onNewAxis);
             eventEmitter.on('newGraph', onNewGraph);
-            eventEmitter.on('clearAxes', onClearAxes);
-            eventEmitter.on('clearAxis', onClearAxis);
 
             try {
                 // Process events from the queue
@@ -211,8 +172,6 @@ export const appRouter = t.router({
                 isActive = false;
                 eventEmitter.off('newAxis', onNewAxis);
                 eventEmitter.off('newGraph', onNewGraph);
-                eventEmitter.off('clearAxes', onClearAxes);
-                eventEmitter.off('clearAxis', onClearAxis);
             }
         }),
 });
