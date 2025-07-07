@@ -170,19 +170,19 @@ async function main() {
     });
 
     // Create second graph - Technical Skills
-    const typescript = await createNode("typescript", {
+    const typescript = createNode("typescript", {
         name: "TypeScript",
         description: "Programming Language",
         properties: []
     });
 
-    const python = await createNode("python", {
+    const python = createNode("python", {
         name: "Python",
         description: "Programming Language",
         properties: []
     });
 
-    const ml = await createNode("ml", {
+    const ml = createNode("ml", {
         name: "Machine Learning",
         description: "Technical Skill",
         properties: []
@@ -216,13 +216,13 @@ async function main() {
     });
 
     // Create third graph - Project Collaboration
-    const projectA = await createNode("project_a", {
+    const projectA = createNode("project_a", {
         name: "Project Alpha",
         description: "Web Application",
         properties: []
     });
 
-    const projectB = await createNode("project_b", {
+    const projectB = createNode("project_b", {
         name: "Project Beta",
         description: "ML Pipeline",
         properties: []
@@ -255,7 +255,7 @@ async function main() {
         ]
     });
 
-    await socialGraph.ready;
+    await socialGraph.ready;,
     await skillsGraph.ready;
     await collaborationGraph.ready;
 
