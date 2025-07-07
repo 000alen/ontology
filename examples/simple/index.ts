@@ -129,6 +129,158 @@ async function main() {
         instance.plot(mainGraph);
         instance.plot(queryGraph);
     }
+
+    // Create first graph - Social Network
+    const alice = createNode("alice", {
+        name: "Alice",
+        description: "Software Engineer",
+        properties: []
+    });
+
+    const bob = createNode("bob", {
+        name: "Bob",
+        description: "Data Scientist",
+        properties: []
+    });
+
+    const charlie = createNode("charlie", {
+        name: "Charlie",
+        description: "Product Manager",
+        properties: []
+    });
+
+    const socialGraph = createGraph("social_network", {
+        nodes: [alice, bob, charlie],
+        edges: [
+            createEdge("knows1", {
+                name: "knows",
+                description: "Knows relationship",
+                sourceId: alice.id,
+                targetId: bob.id,
+                properties: []
+            }),
+            createEdge("knows2", {
+                name: "knows",
+                description: "Knows relationship",
+                sourceId: bob.id,
+                targetId: charlie.id,
+                properties: []
+            })
+        ]
+    });
+
+    // Create second graph - Technical Skills
+    const typescript = createNode("typescript", {
+        name: "TypeScript",
+        description: "Programming Language",
+        properties: []
+    });
+
+    const python = createNode("python", {
+        name: "Python",
+        description: "Programming Language",
+        properties: []
+    });
+
+    const ml = createNode("ml", {
+        name: "Machine Learning",
+        description: "Technical Skill",
+        properties: []
+    });
+
+    const skillsGraph = createGraph("technical_skills", {
+        nodes: [typescript, python, ml],
+        edges: [
+            createEdge("uses1", {
+                name: "uses",
+                description: "Uses technology",
+                sourceId: alice.id,
+                targetId: typescript.id,
+                properties: []
+            }),
+            createEdge("uses2", {
+                name: "uses",
+                description: "Uses technology",
+                sourceId: bob.id,
+                targetId: python.id,
+                properties: []
+            }),
+            createEdge("uses3", {
+                name: "uses",
+                description: "Uses technology",
+                sourceId: bob.id,
+                targetId: ml.id,
+                properties: []
+            })
+        ]
+    });
+
+    // Create third graph - Project Collaboration
+    const projectA = createNode("project_a", {
+        name: "Project Alpha",
+        description: "Web Application",
+        properties: []
+    });
+
+    const projectB = createNode("project_b", {
+        name: "Project Beta",
+        description: "ML Pipeline",
+        properties: []
+    });
+
+    const collaborationGraph = createGraph("project_collaboration", {
+        nodes: [projectA, projectB],
+        edges: [
+            createEdge("works_on1", {
+                name: "works on",
+                description: "Works on project",
+                sourceId: alice.id,
+                targetId: projectA.id,
+                properties: []
+            }),
+            createEdge("works_on2", {
+                name: "works on",
+                description: "Works on project",
+                sourceId: bob.id,
+                targetId: projectB.id,
+                properties: []
+            }),
+            createEdge("works_on3", {
+                name: "works on",
+                description: "Works on project",
+                sourceId: charlie.id,
+                targetId: projectA.id,
+                properties: []
+            })
+        ]
+    });
+
+    await socialGraph.ready;,
+    await skillsGraph.ready;
+    await collaborationGraph.ready;
+
+    // Create visualization instance
+    const instance = createInstance();
+
+    // Approach 1: Simple plotting (creates default axis automatically)
+    console.log("📊 Using simple approach - creating default axis");
+    instance.plot(socialGraph);
+
+    // Approach 2: Explicit axis creation for better organization
+    console.log("📊 Using explicit axis approach - creating named axes");
+    const technicalAxis = instance.createAxis();
+
+    const projectAxis = instance.createAxis();
+
+    // Plot graphs on their respective axes
+    technicalAxis.plot(skillsGraph);
+    projectAxis.plot(collaborationGraph);
+
+    console.log("🎨 Axis-based visualization started!");
+    console.log("📊 View all axes simultaneously at http://localhost:3000");
+    console.log("🔄 Each axis has a different color and title for easy identification");
+    console.log("📈 The first graph uses the simple approach (default axis)");
+    console.log("📈 The other graphs use explicit axes for better organization");
 }
 
 main()

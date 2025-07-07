@@ -1,5 +1,7 @@
 import { EmbeddingModel } from "ai";
 
+export type Vector = number[];
+
 /**
  * Represents a vector embedding as an array of floating-point numbers.
  * 
@@ -12,7 +14,7 @@ import { EmbeddingModel } from "ai";
  * const embedding: Embedding = [0.1, -0.5, 0.8, 0.2, -0.3];
  * ```
  */
-export type Embedding = number[];
+export type Embedding = Vector;
 
 /**
  * Represents a unique graph identifier in the ontology system.
@@ -149,6 +151,10 @@ export type Node = AsyncObject<{
     embedding: Embedding | null;
     /** Array of properties associated with this node */
     properties: Property[];
+
+    meta: Partial<{
+        parentId: string[];
+    }> & Record<string, any>
 }>;
 
 /**

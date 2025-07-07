@@ -1,25 +1,22 @@
-import { useEffect, useState } from 'react'
-import { io, Socket } from 'socket.io-client'
+import { useState, useEffect } from 'react'
+import { trpc } from '../utils/trpc'
 
-export const useSocket = () => {
-  const [socket, setSocket] = useState<Socket | null>(null)
+export const useConnectionStatus = () => {
+  const [status, setStatus] = useState<'connected' | 'disconnected'>('disconnected')
+
+  // Use a simple query to check connection status
+  const { isSuccess, isError } = trpc.getAxes.useQuery(undefined, {
+    refetchInterval: 5000, // Check every 5 seconds
+    retry: 1,
+  })
 
   useEffect(() => {
-    const newSocket = io()
-    setSocket(newSocket)
-
-    newSocket.on('connect', () => {
-      console.log('Connected to server')
-    })
-
-    newSocket.on('disconnect', () => {
-      console.log('Disconnected from server')
-    })
-
-    return () => {
-      newSocket.close()
+    if (isSuccess) {
+      setStatus('connected')
+    } else if (isError) {
+      setStatus('disconnected')
     }
-  }, [])
+  }, [isSuccess, isError])
 
-  return socket
+  return status
 } 

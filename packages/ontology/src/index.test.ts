@@ -1,19 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import { match, intersect, merge, incident } from './index.js'
-import { Graph, Node, Edge, NodeId, EdgeId } from './types.js'
+import { Graph, Node, Edge, NodeId, EdgeId, Vector } from './types.js'
 
 describe('Graph Matching Algorithms', () => {
   // Helper function to create test nodes
-  const createNode = (id: string, embedding: number[]): Node => ({
+  const createNode = (id: string, embedding: Vector): Node => ({
     id: `node_${id}` as NodeId,
     name: `Node ${id}`,
     description: `Node ${id}`,
     embedding,
-    properties: []
+    properties: [],
+    meta: {}
   })
 
   // Helper function to create test edges
-  const createEdge = (id: string, sourceId: NodeId, targetId: NodeId, embedding: number[]): Edge => ({
+  const createEdge = (id: string, sourceId: NodeId, targetId: NodeId, embedding: Vector): Edge => ({
     id: `edge_${id}` as EdgeId,
     name: `Edge ${id}`,
     description: `Edge from ${sourceId} to ${targetId}`,

@@ -1,49 +1,33 @@
 import React from 'react'
-import { Header } from './components/Header'
-import { Visualizer } from './components/Visualizer'
-import { Sidebar } from './components/Sidebar'
-import { useSocket } from './hooks/useSocket'
-import { useGraphs } from './hooks/useGraphs'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { TRPCProvider, queryClient } from './utils/trpc'
+import IndexPage from './pages/index'
+import GraphPage from './pages/graph/[id]'
+
 import './App.css'
 
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <IndexPage />,
+  },
+  {
+    path: '/graph/:id',
+    element: <GraphPage />,
+  }
+]);
+
 const App: React.FC = () => {
-  const socket = useSocket()
-  const {
-    graphs,
-    currentGraph,
-    selectGraph,
-    loadGraphs,
-    setCurrentGraph,
-    highlightedNode,
-    highlightedEdge,
-    setHighlightedNode,
-    setHighlightedEdge,
-  } = useGraphs(socket)
 
   return (
-    <div className="app">
-      <Header
-        graphs={graphs}
-        currentGraph={currentGraph}
-        onSelectGraph={selectGraph}
-        onRefresh={loadGraphs}
-        connectionStatus={socket?.connected ? 'connected' : 'disconnected'}
-      />
-      
-      <div className="container">
-        <Visualizer
-          graph={currentGraph}
-          onNodeClick={setHighlightedNode}
-          onEdgeClick={setHighlightedEdge}
-        />
-        
-        <Sidebar
-          graph={currentGraph}
-          highlightedNode={highlightedNode}
-          highlightedEdge={highlightedEdge}
-        />
-      </div>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <TRPCProvider>
+        <div className="app">
+          <RouterProvider router={router} />
+        </div>
+      </TRPCProvider>
+    </QueryClientProvider>
   )
 }
 

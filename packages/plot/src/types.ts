@@ -1,8 +1,11 @@
-import type { Graph, Node, Edge } from 'ontology'
+import type { Graph } from 'ontology'
 
-export interface GraphWithId extends Graph {
-  id: string
+export interface AxisData {
+  id: string;
+  graphs: GraphWithId[];
 }
+
+export interface GraphWithId extends Graph { }
 
 export interface ConnectionStatus {
   connected: boolean
@@ -10,67 +13,29 @@ export interface ConnectionStatus {
 }
 
 export interface HeaderProps {
-  graphs: GraphWithId[]
-  currentGraph: GraphWithId | null
-  onSelectGraph: (index: number) => void
+  axes: AxisData[]
   onRefresh: () => void
   connectionStatus: 'connected' | 'disconnected'
+  onClearAxes: () => void
 }
 
 export interface VisualizerProps {
-  graph: GraphWithId | null
-  onNodeClick: (node: Node) => void
-  onEdgeClick: (edge: Edge) => void
+  axis: AxisData
+}
+
+export interface VisualizationProps {
+  axis: AxisData
 }
 
 export interface SidebarProps {
-  graph: GraphWithId | null
-  highlightedNode: Node | null
-  highlightedEdge: Edge | null
+  axis: AxisData
 }
 
 export interface NoGraphsProps {
   message?: string
 }
 
-export interface VisNetworkNode {
-  id: string
-  label: string
-  title: string
-  color: {
-    background: string
-    border: string
-    highlight: {
-      background: string
-      border: string
-    }
-  }
-  font: {
-    size: number
-    color: string
-  }
-  shape: string
-  size: number
+export interface GalleryProps {
+  axes: AxisData[]
 }
 
-export interface VisNetworkEdge {
-  id: string
-  from: string
-  to: string
-  label: string
-  title: string
-  color: {
-    color: string
-    highlight: string
-  }
-  arrows: {
-    to: {
-      enabled: boolean
-      scaleFactor: number
-    }
-  }
-  font: {
-    size: number
-    color: string
-  }
-} 

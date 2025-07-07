@@ -1,25 +1,49 @@
 import React from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useConnectionStatus } from '../hooks/useSocket'
 import type { HeaderProps } from '../types'
 
-export const Header: React.FC<HeaderProps> = ({
-  graphs,
-  currentGraph,
-  onSelectGraph,
+export const Header: React.FC<Omit<HeaderProps, 'connectionStatus'> & {
+  axes: any[];
+  onRefresh: () => void;
+  onClearAxes: () => void;
+}> = ({
+  axes,
   onRefresh,
-  connectionStatus,
+  onClearAxes,
 }) => {
-  const handleGraphChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const index = parseInt(event.target.value)
-    if (!isNaN(index)) {
-      onSelectGraph(index)
+  const connectionStatus = useConnectionStatus()
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const isGalleryView = location.pathname === '/'
+  const isVisualizationView = location.pathname.startsWith('/graph')
+
+  const handleToggleView = () => {
+    if (isGalleryView) {
+      // Go to visualization view
+      navigate('/graph')
+    } else {
+      // Go to gallery view
+      navigate('/')
     }
   }
 
-  const getGraphInfo = () => {
-    if (currentGraph) {
-      return `${currentGraph.nodes.length} nodes, ${currentGraph.edges.length} edges`
+  const getAxisInfo = () => {
+    if (isGalleryView) {
+      return `${axes.length} axes available`
     }
-    return 'No graph selected'
+    if (axes.length > 0) {
+      const totalGraphs = axes.reduce((sum, axis) => sum + axis.graphs.length, 0);
+      const totalNodes = axes.reduce((sum, axis) => 
+        sum + axis.graphs.reduce((graphSum, graph) => graphSum + graph.nodes.length, 0), 0
+      );
+      const totalEdges = axes.reduce((sum, axis) => 
+        sum + axis.graphs.reduce((graphSum, graph) => graphSum + graph.edges.length, 0), 0
+      );
+      return `${axes.length} axes, ${totalGraphs} graphs, ${totalNodes} nodes, ${totalEdges} edges`
+    }
+    return 'No axes available'
   }
 
   const getConnectionStatusIcon = () => {
@@ -34,35 +58,38 @@ export const Header: React.FC<HeaderProps> = ({
     <div className="header">
       <h1>🎨 Ontology Graph Visualizer</h1>
       <div className="controls">
-        <select
-          className="graph-selector"
-          value={currentGraph ? graphs.indexOf(currentGraph) : ''}
-          onChange={handleGraphChange}
-        >
-          <option value="">Select a graph to visualize</option>
-          {graphs.map((graph, index) => (
-            <option key={graph.id} value={index}>
-              {graph.id} ({graph.nodes.length} nodes, {graph.edges.length} edges)
-            </option>
-          ))}
-        </select>
+        <button className="btn view-toggle" onClick={handleToggleView}>
+          {isGalleryView ? '📊 View Axes' : '🖼️ Gallery'}
+        </button>
+        
+        {isVisualizationView && (
+          <>
+            <button 
+              className="btn" 
+              onClick={() => {
+                // This will be handled by the Visualizer component
+                window.dispatchEvent(new CustomEvent('resetNetworkView'))
+              }}
+            >
+              Reset View
+            </button>
+            
+            <button 
+              className="btn" 
+              onClick={onClearAxes}
+              style={{ backgroundColor: '#dc3545' }}
+            >
+              Clear All Axes
+            </button>
+          </>
+        )}
         
         <button className="btn" onClick={onRefresh}>
           Refresh
         </button>
         
-        <button 
-          className="btn" 
-          onClick={() => {
-            // This will be handled by the Visualizer component
-            window.dispatchEvent(new CustomEvent('resetNetworkView'))
-          }}
-        >
-          Reset View
-        </button>
-        
         <div className="info">
-          <span>{getGraphInfo()}</span>
+          <span>{getAxisInfo()}</span>
           <span className={`connection-status ${connectionStatus}`}>
             {getConnectionStatusIcon()} {getConnectionStatusText()}
           </span>

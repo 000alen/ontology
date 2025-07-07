@@ -4,7 +4,6 @@ import {
     createEdge,
     createGraph,
     createNode,
-    createProperty,
     merge
 } from "ontology";
 import { plot } from "ontology-plot";
@@ -12,19 +11,19 @@ import { plot } from "ontology-plot";
 async function getOntology() {
     const organizationEntity = createNode("organization", {
         name: "Organization",
-        description: "An organization of the application",
+        description: "An organization",
         properties: []
     });
 
     const userEntity = createNode("user", {
         name: "User",
-        description: "A user of the application",
+        description: "A user",
         properties: []
     });
 
     const membershipEntity = createNode("membership", {
         name: "Membership",
-        description: "A membership of an organization",
+        description: "",
         properties: []
     });
 
@@ -38,7 +37,7 @@ async function getOntology() {
 
     const userMembershipEdge = createEdge("user_membership", {
         name: "User Membership",
-        description: "A membership of a user",
+        description: "A user",
         properties: [],
         sourceId: userEntity.id,
         targetId: membershipEntity.id,
@@ -56,42 +55,41 @@ async function getOntology() {
 
 async function main() {
     const o = await getOntology();
-    plot(o);
 
-    const nameProperty = createProperty("name", {
-        name: "name",
-        description: "The name of the user",
-    });
+    // const nameProperty = createProperty("name", {
+    //     name: "name",
+    //     description: "The name of the user",
+    // });
 
-    const emailProperty = createProperty("email", {
-        name: "email",
-        description: "The email of the user",
-    });
+    // const emailProperty = createProperty("email", {
+    //     name: "email",
+    //     description: "The email of the user",
+    // });
 
-    const passwordProperty = createProperty("password", {
-        name: "password",
-        description: "The password of the user",
-    });
+    // const passwordProperty = createProperty("password", {
+    //     name: "password",
+    //     description: "The password of the user",
+    // });
 
     const userEntity = createNode("user", {
         name: "User",
-        description: "A user of the system",
+        description: "A user",
         properties: [
-            nameProperty,
-            emailProperty,
-            passwordProperty,
+            // nameProperty,
+            // emailProperty,
+            // passwordProperty,
         ]
     });
 
     const postEntity = createNode("post", {
         name: "Post",
-        description: "A post of the system",
+        description: "A post",
         properties: []
     });
 
     const userPostEdge = createEdge("user_post", {
         name: "User Post",
-        description: "A post of a user",
+        description: "A post",
         properties: [],
         sourceId: userEntity.id,
         targetId: postEntity.id,
@@ -104,11 +102,13 @@ async function main() {
 
     await schemaGraph.ready;
 
-    plot(schemaGraph);
-
     const refined = merge(schemaGraph, o);
 
-    plot(refined);
+
+    // plot(schemaGraph)
+
+    plot(o, schemaGraph);
+    // plot(refined);
 
     console.log(refined);
 }
